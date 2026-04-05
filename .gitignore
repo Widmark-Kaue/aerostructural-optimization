@@ -1,3 +1,6 @@
+# My ignores
+images/
+
 # Created by https://www.toptal.com/developers/gitignore/api/python,fortran
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,fortran
 
