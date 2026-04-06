@@ -1,5 +1,5 @@
 # build.sh
-
+mkdir -p __build__
 # Remove previous files
 rm *.exe
 
@@ -9,10 +9,10 @@ gfortran -c -fdefault-real-8 test_llt.f90
 # gfortran -c -fdefault-real-8 test_program.f90
 
 # Linking
-gfortran llt.o test_llt.o -o test_program.exe
+gfortran llt.o test_llt.o -o __build__/test_program.exe
 
 # Execution
-./test_program.exe
+./__build__/test_program.exe
 
 # Remove unnecessary files
 rm *.o

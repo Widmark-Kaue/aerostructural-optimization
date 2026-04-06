@@ -1,3 +1,7 @@
+""""
+    Question 1 from Homerwork 1: 
+        - Plotting the z-component of velocity induced by a horseshoe vortex
+"""
 #%% Imports
 import numpy as np
 import matplotlib.pyplot as plt
