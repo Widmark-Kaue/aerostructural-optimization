@@ -18,7 +18,6 @@ vinf = 10
 rho_air = 1.225
 
 res_llt, cl, cd = llt.llt_main(
-    len(twist), 
     twist, 
     gama, 
     span, 
@@ -30,7 +29,7 @@ res_llt, cl, cd = llt.llt_main(
     rho_air
     )
 
-# print("Results from Fortran:")
-# print("Lift coefficient (cl):", cl)
-# print("Drag coefficient (cd):", cd) 
-# print('Residues of the solution:', res_llt)
+print("Results from Fortran:")
+print("Lift coefficient (cl):", cl)
+print("Drag coefficient (cd):", cd) 
+print('Residues of the solution:', res_llt)
