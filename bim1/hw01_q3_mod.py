@@ -3,7 +3,7 @@ import numpy as np
 
 #==========================
 
-def rosenbrock(x):
+def rosenbrock(x:np.ndarray) -> float:
     '''
     Computes the multidimension Rosenbrock function
     at point x. The number of dimensions is equal to
@@ -22,8 +22,13 @@ def rosenbrock(x):
     '''
     
     # ADD CODE HERE
+    n =  len(x)
+    f = np.zeros(n-1)
     
-    return
+    for i in range(n-1):
+        f[i] = 100*(x[i+1] - x[i]**2)**2 + (1-x[i])**2
+    
+    return np.sum(f)
 
 #==========================
 
@@ -146,3 +151,10 @@ def bfgs_opt(n):
     return
 
 #==========================
+
+if __name__ == "__main__":
+    # Test the functions
+    x = np.array([1.0, 1.0])
+    print(f"Rosenbrock function value at x = {x.tolist()}:", rosenbrock(x))
+    x = np.array([-1.0, 0.0, 0.3])
+    print(f"Rosenbrock function value at x = {x.tolist()}:", rosenbrock(x))
