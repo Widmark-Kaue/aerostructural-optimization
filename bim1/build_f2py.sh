@@ -1,5 +1,5 @@
 # build_f2py.sh
-# This script builds the Python interface for mymodule2.f90
+# This script builds the Python interface for llt.f90
 
 # Define variables
 MOD=llt
