@@ -13,16 +13,18 @@ from utils import set_aiaa_style
 
 set_aiaa_style(16)
 
-#%% Image settings
-imagdir = Path('.')
-if not imagdir.name == 'bim1':
-    imagdir = Path('.','bim1', 'images')
-
-imagdir.mkdir(exist_ok=True)
-
 dpi = 600
 format = 'pdf'
 saveflag = True
+#%% Image Path settings
+imagdir = Path('.')
+if not imagdir.absolute().name == 'bim1':
+    imagdir = Path('.','bim1')
+
+imagdir = imagdir.joinpath('images')
+imagdir.mkdir(exist_ok=True)
+print("Images will be saved in:", imagdir)
+
 #%% Plotting z-component of velocity induced by a horseshoe vortex
 L = 1.0  # Length of the domain
 Gamma = 1.0  # Circulation
