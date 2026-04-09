@@ -51,8 +51,16 @@ def rosenbrock_grad(x):
     '''
     
     # ADD CODE HERE
-
-    return
+    n = len(x)
+    grad = np.zeros(n)
+    
+    grad[0] = -400*x[0]*(x[1] - x[0]**2) - 2*(1-x[0])
+    grad[n-1] = 200*(x[n-1] - x[n-2]**2)
+    
+    for j in range(1, n-1):
+        grad[j] = 200*(x[j] - x[j-1]**2) - 400*x[j]*(x[j+1] - x[j]**2) - 2*(1-x[j]) 
+    
+    return grad
 
 #==========================
 
@@ -156,5 +164,7 @@ if __name__ == "__main__":
     # Test the functions
     x = np.array([1.0, 1.0])
     print(f"Rosenbrock function value at x = {x.tolist()}:", rosenbrock(x))
+    print(f"Rosenbrock function gradient at x = {x.tolist()}:", rosenbrock_grad(x))
     x = np.array([-1.0, 0.0, 0.3])
     print(f"Rosenbrock function value at x = {x.tolist()}:", rosenbrock(x))
+    print(f"Rosenbrock function gradient at x = {x.tolist()}:", rosenbrock_grad(x))
