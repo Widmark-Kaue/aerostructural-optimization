@@ -56,7 +56,7 @@ contains
         real :: wi(nelem), Veff(nelem)              ! Induced velocity at each horseshoe vortex and efective velocity at each wing section
         real :: alpha_ind(nelem), alpha_eff(nelem)  ! Induced angle of attack and effective angle of attack at each wing section
         real :: cli(nelem), lsi(nelem), lki(nelem)  ! Section lift coefficient, sectional lift force and Kutta-Joukowski force at each wing section
-        real, allocatable :: idx(:)                 ! Index array for the horseshoe vortices
+        real :: idx(nelem)                          ! Index array for the horseshoe vortices
         
         ! EXECUTION
         
@@ -64,7 +64,7 @@ contains
         pi = acos(-1.0)
         panel_length = span / real(nelem)
         Sref = span * chord
-        call range(1.0, real(nelem), 1.0, idx)
+        idx = [(1.0 + (ii-1)*1.0, ii = 1, nelem)]
 
         ! ADD YOUR CODE HERE 
         yc  = 0.5*(panel_length - span) + (idx-1)*panel_length ! Spanwise locations of the horseshoe vortices
@@ -93,43 +93,7 @@ contains
         CD = -sum(lki*panel_length*sin(alpha_ind)) / (0.5*rho_air*Vinf**2* Sref) ! Total drag coefficient of the wing
 
         ! END OF YOUR CODE
-        deallocate(idx)
 
     end subroutine llt_main
 
-    subroutine range(start, stop, step, result)
-        ! This subroutine generates a range of values from start to stop with a given step.
-        
-        ! INPUTS
-        ! start: real -> Starting value of the range
-        ! stop: real -> Ending value of the range
-        ! step: real -> Step size for the range
-
-        ! OUTPUTS
-        ! result: real(:) -> Array containing the generated range of values
-
-        implicit none
-
-        ! Input variables
-        real, intent(in) :: start, stop, step
-        
-        ! Output variable
-        real, allocatable, intent(out) :: result(:)
-
-
-        ! Working variables
-        integer :: n, i
-
-        ! Calculate the number of elements in the range
-        n = int((stop - start) / step) + 1
-        ! Allocate the result array
-        allocate(result(n))
-        
-        ! Generate the range of values
-        do i = 1, n
-            result(i) = start + (i - 1) * step
-        end do
-    end subroutine range
-
-    
 end module llt
