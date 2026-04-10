@@ -22,7 +22,7 @@ if not imagdir.absolute().name == 'bim1':
     imagdir = Path('.','bim1')
 
 imagdir = imagdir.joinpath('images')
-imagdir.mkdir(exist_ok=True)
+imagdir.mkdir(exist_ok=True, parents=True)
 print("Images will be saved in:", imagdir)
 
 #%% Plotting z-component of velocity induced by a horseshoe vortex

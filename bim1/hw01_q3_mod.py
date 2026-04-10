@@ -65,7 +65,7 @@ def rosenbrock_grad(x):
 
 #==========================
 
-def nm_opt(n):
+def nm_opt(n, tol = 1e-12):
     '''
     Optimizes the function using the Nelder-Mead Simplex Algorithm,
     starting at the point x = [0, 0, ..., 0].
@@ -85,7 +85,7 @@ def nm_opt(n):
 
     # ADD CODE HERE
     x = np.zeros(n)
-    options = {'maxiter': 200000, 'fatol': 1e-12, 'adaptive': True}
+    options = {'maxiter': 200000, 'fatol': tol, 'adaptive': True}
     results = minimize(rosenbrock, x, method='Nelder-Mead', options=options)
 
     x_opt = results.x
@@ -98,7 +98,7 @@ def nm_opt(n):
 
 #==========================
 
-def de_opt(n):
+def de_opt(n, tol = 1e-12):
     '''
     Optimizes the function using the Differential Evolution Algorithm,
     starting at the point x = [0, 0, ..., 0].
@@ -124,7 +124,7 @@ def de_opt(n):
         seed = 1,  #type: ignore
         maxiter=5000, 
         polish = False, 
-        atol=1e-12) #type: ignore
+        atol=tol) #type: ignore
     x_opt = results.x
     f_opt = results.fun
     nfev = results.nfev
@@ -134,7 +134,7 @@ def de_opt(n):
 
 #==========================
 
-def cg_opt(n):
+def cg_opt(n, tol = 1e-6):
     '''
     Optimizes the function using the Conjugate Gradient Algorithm,
     starting at the point x = [0, 0, ..., 0].
@@ -155,7 +155,7 @@ def cg_opt(n):
     # ADD CODE HERE
     x = np.zeros(n)
     options = {'maxiter': 200000}
-    results = minimize(rosenbrock, x, method='CG', jac=rosenbrock_grad, tol = 1e-6,  options=options)
+    results = minimize(rosenbrock, x, method='CG', jac=rosenbrock_grad, tol = tol,  options=options)
     x_opt = results.x
     f_opt = results.fun
     nfev = results.nfev
@@ -166,7 +166,7 @@ def cg_opt(n):
 
 #==========================
 
-def bfgs_opt(n):
+def bfgs_opt(n, tol = 1e-6):
     '''
     Optimizes the function using the BFGS Algorithm,
     starting at the point x = [0, 0, ..., 0].
@@ -187,7 +187,7 @@ def bfgs_opt(n):
     # ADD CODE HERE
     x = np.zeros(n)
     options = {'maxiter': 200000}
-    results = minimize(rosenbrock, x, method='BFGS', jac=rosenbrock_grad, tol = 1e-6, options=options)
+    results = minimize(rosenbrock, x, method='BFGS', jac=rosenbrock_grad, tol = tol, options=options)
     x_opt = results.x
     f_opt = results.fun
     nfev = results.nfev

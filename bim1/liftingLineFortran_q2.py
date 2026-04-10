@@ -1,6 +1,9 @@
 """"
+    Author: Widmark Kauê Silva Cardoso
+    
     Question 2 from Homework 1:
         - Lifting line theory implementation in Fortran
+        
 """
 #%%----------------------------------------------------------
 ### Imports
@@ -35,11 +38,11 @@ if not rootdir.absolute().name == 'bim1':
     rootdir = Path('.','bim1')
 
 datadir = rootdir.joinpath('data')
-datadir.mkdir(exist_ok=True)
+datadir.mkdir(exist_ok=True, parents=True)
 print("Data will be saved in:", datadir)
 
 imagdir = rootdir.joinpath('images')
-imagdir.mkdir(exist_ok=True)
+imagdir.mkdir(exist_ok=True, parents=True)
 print("Images will be saved in:", imagdir)
 
 #%%----------------------------------------------------------
@@ -136,13 +139,14 @@ print("Lift coefficient (cl):", cl)
 print("Drag coefficient (cd):", cd)
 print('Residues of the solution:', res_llt)
 
-COEFF = np.round(COEFF, 8)
-COEFF_TXT = np.where(COEFF == 0, '', COEFF.astype(str))
-np.savetxt(datadir / 'coefficients_4_and_8_vortices.txt', 
-           COEFF_TXT, 
-           fmt='%4s', 
-           header='cl cd \n gamma_values', 
-           delimiter='\t')
+if saveflag:
+    COEFF = np.round(COEFF, 8)
+    COEFF_TXT = np.where(COEFF == 0, '', COEFF.astype(str))
+    np.savetxt(datadir / 'coefficients_4_and_8_vortices.txt', 
+            COEFF_TXT, 
+            fmt='%4s', 
+            header='cl cd \n gamma_values', 
+            delimiter='\t')
 
 #%%----------------------------------------------------------
 ### b) Compare LLT with 20 vortices to elipitical lift distribution
