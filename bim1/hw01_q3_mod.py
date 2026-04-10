@@ -1,6 +1,7 @@
 # IMPORTS
 import numpy as np
-
+import os
+from scipy.optimize import minimize, differential_evolution
 #==========================
 
 def rosenbrock(x:np.ndarray) -> float:
@@ -83,8 +84,17 @@ def nm_opt(n):
     '''
 
     # ADD CODE HERE
+    x = np.zeros(n)
+    options = {'maxiter': 200000, 'fatol': 1e-12, 'adaptive': True}
+    results = minimize(rosenbrock, x, method='Nelder-Mead', options=options)
 
-    return
+    x_opt = results.x
+    f_opt = results.fun
+    nfev = results.nfev
+    
+    print(results.message)
+    
+    return x_opt, f_opt, nfev
 
 #==========================
 
@@ -107,8 +117,20 @@ def de_opt(n):
     '''
 
     # ADD CODE HERE
-
-    return
+    bounds = [(-4, 4)] * n
+    results = differential_evolution(
+        rosenbrock, 
+        bounds, 
+        seed = 1,  #type: ignore
+        maxiter=5000, 
+        polish = False, 
+        atol=1e-12) #type: ignore
+    x_opt = results.x
+    f_opt = results.fun
+    nfev = results.nfev
+    
+    print(results.message)
+    return x_opt, f_opt, nfev
 
 #==========================
 
@@ -131,8 +153,16 @@ def cg_opt(n):
     '''
 
     # ADD CODE HERE
-
-    return
+    x = np.zeros(n)
+    options = {'maxiter': 200000}
+    results = minimize(rosenbrock, x, method='CG', jac=rosenbrock_grad, tol = 1e-6,  options=options)
+    x_opt = results.x
+    f_opt = results.fun
+    nfev = results.nfev
+    njac = results.njev
+    
+    print(results.message)
+    return x_opt, f_opt, nfev + njac
 
 #==========================
 
@@ -155,16 +185,45 @@ def bfgs_opt(n):
     '''
 
     # ADD CODE HERE
-
-    return
+    x = np.zeros(n)
+    options = {'maxiter': 200000}
+    results = minimize(rosenbrock, x, method='BFGS', jac=rosenbrock_grad, tol = 1e-6, options=options)
+    x_opt = results.x
+    f_opt = results.fun
+    nfev = results.nfev
+    njac = results.njev
+    
+    print(results.message)
+    return x_opt, f_opt, nfev + njac
 
 #==========================
 
 if __name__ == "__main__":
     # Test the functions
+    os.system('clear') # for linux
+    print(50 * '-')
+    print('Testing rosenbrock functions:')
     x = np.array([1.0, 1.0])
-    print(f"Rosenbrock function value at x = {x.tolist()}:", rosenbrock(x))
-    print(f"Rosenbrock function gradient at x = {x.tolist()}:", rosenbrock_grad(x))
+    print(f"x = {x.tolist()}:", rosenbrock(x))
+    print(f"gradient at x = {x.tolist()}:", rosenbrock_grad(x))
     x = np.array([-1.0, 0.0, 0.3])
-    print(f"Rosenbrock function value at x = {x.tolist()}:", rosenbrock(x))
-    print(f"Rosenbrock function gradient at x = {x.tolist()}:", rosenbrock_grad(x))
+    print(f"x = {x.tolist()}:", rosenbrock(x))
+    print(f"gradient at x = {x.tolist()}:", rosenbrock_grad(x))
+    print('\n\n'+50 * '-')
+    print('Testing optimization functions:')
+    
+    print('\n1. Nelder-Mead optimization:')
+    print(nm_opt(2))
+    print(nm_opt(3))
+    
+    print('\n2. Differential Evolution optimization:')
+    print(de_opt(2))
+    print(de_opt(3))
+    
+    print('\n3. Conjugate Gradient optimization:')
+    print(cg_opt(2))
+    print(cg_opt(3))
+    
+    print('\n4. BFGS optimization:')
+    print(bfgs_opt(2))
+    print(bfgs_opt(3))
