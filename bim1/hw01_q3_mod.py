@@ -92,7 +92,7 @@ def nm_opt(n):
     f_opt = results.fun
     nfev = results.nfev
     
-    print(results.message)
+    print(f'nm_opt: {results.message}')
     
     return x_opt, f_opt, nfev
 
@@ -129,7 +129,7 @@ def de_opt(n):
     f_opt = results.fun
     nfev = results.nfev
     
-    print(results.message)
+    print(f'de_opt: {results.message}')
     return x_opt, f_opt, nfev
 
 #==========================
@@ -161,7 +161,7 @@ def cg_opt(n):
     nfev = results.nfev
     njac = results.njev
     
-    print(results.message)
+    print(f'cg_opt: {results.message}')
     return x_opt, f_opt, nfev + njac
 
 #==========================
@@ -193,7 +193,7 @@ def bfgs_opt(n):
     nfev = results.nfev
     njac = results.njev
     
-    print(results.message)
+    print(f'bfgs_opt: {results.message}')
     return x_opt, f_opt, nfev + njac
 
 #==========================
