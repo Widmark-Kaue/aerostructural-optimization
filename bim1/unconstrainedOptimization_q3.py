@@ -12,8 +12,9 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-from cycler import cycler
 from pathlib import Path
+from cycler import cycler
+
 from hw01_q3_mod import nm_opt, de_opt, cg_opt, bfgs_opt
 from utils import set_aiaa_style
 #%%----------------------------------------------------------
@@ -75,11 +76,11 @@ else:
 
 
 # Plot
-context = {'lines.linewidth': 2, 
-           'lines.markersize': 6, 
-           'lines.linestyle': '--', 
-           'lines.marker': 'o',
-           'axes.prop_cycle': cycler('color',plt.color_sequences['Set1'])}
+
+# Dict with default parameters in context
+context = {'lines.linewidth': 2, 'lines.markersize': 6,'lines.linestyle': '--','lines.marker': 'o',
+           'axes.prop_cycle': cycler('color',plt.color_sequences['Set1'])}  # create cycle of color list
+
 with plt.rc_context(context):
     plt.figure(figsize=(16, 4.5))
     plt.subplot(1,2, 1)
