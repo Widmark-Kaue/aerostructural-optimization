@@ -12,6 +12,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
+from cycler import cycler
 from pathlib import Path
 from hw01_q3_mod import nm_opt, de_opt, cg_opt, bfgs_opt
 from utils import set_aiaa_style
@@ -28,7 +29,7 @@ format = 'pdf'
 saveflag = True
 #%%----------------------------------------------------------
 ### Data settings
-generateDataFlag = True
+generateDataFlag = False                                    # if False, code will try read data from datadir 
 #%%----------------------------------------------------------
 ### Path settings
 rootdir = Path('.')
@@ -73,7 +74,46 @@ else:
     
 
 
+# Plot
+context = {'lines.linewidth': 2, 
+           'lines.markersize': 6, 
+           'lines.linestyle': '--', 
+           'lines.marker': 'o',
+           'axes.prop_cycle': cycler('color',plt.color_sequences['Set1'])}
+with plt.rc_context(context):
+    plt.figure(figsize=(16, 4.5))
+    plt.subplot(1,2, 1)
+    plt.loglog(n, nm_result[:, 1], label = 'Nelder-Mead')
+    plt.loglog(n, de_result[:, 1], label = 'Differential Evolution')
+    plt.loglog(n, cg_result[:, 1], label = 'CG')
+    plt.loglog(n, bfgs_result[:, 1], label = 'BFGS')
+    
+    plt.title('(a)')
+    plt.xlabel('Number of dimensions')
+    plt.ylabel('nfev')
 
+    plt.legend()
+    plt.grid(which='minor')
+    
+    # plt.figure(figsize=(8, 4.5))
+    plt.subplot(1, 2, 2)
+    plt.loglog(n, nm_result[:, 0], label = 'Nelder-Mead')
+    plt.loglog(n, de_result[:, 0], label = 'Differential Evolution')
+    plt.loglog(n, cg_result[:, 0], label = 'CG')
+    plt.loglog(n, bfgs_result[:, 0], label = 'BFGS')
+    
+    plt.title('(b)')
+    plt.xlabel('Number of dimensions')
+    plt.ylabel(r'$f(\vec{\bf{x}})$')
 
+    # plt.ylim([1e-20, 1])
+
+    # plt.legend()
+    plt.grid(which='both')
+    
+    plt.tight_layout()
+    
+    plt.savefig(imagdir / f'q3.{format}', dpi=dpi, bbox_inches='tight') if saveflag else None
+    plt.show()
 # Function evaluation
 
