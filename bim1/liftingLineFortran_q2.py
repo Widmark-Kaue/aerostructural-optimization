@@ -168,12 +168,19 @@ print('Residues of the solution:', res_llt)
 
 # Implement elliptical lift distribution
 Sref = span * chord
-y = np.linspace(-span/2, span/2, 100)
+y = np.linspace(-span/2, span/2, nv)
 gamma_0 = 2*vinf*Sref/(np.pi*span) * cl
 gamma_elliptical = 2*gamma_0 * np.sqrt((0.5+ y/span) * (0.5-y/span))
+CD = cl**2*Sref/(np.pi*span**2)
+
+print('Results from elliptical wing:')
+print('Gamma values:', gamma_elliptical)
+print("Lift coefficient (CL):", cl)
+print("Drag coefficient (CD):", CD)
+
 
 plt.figure(figsize=(6,4))
-plt.plot(y, gamma_elliptical,'k--', label='Elliptical Lift Distribution')
+plt.plot(y, gamma_elliptical,'k--', label='Elliptical distribution')
 plt.plot(np.linspace(-span/2, span/2, nv), sol_20v.x, '-', color = 'darkblue', label='LLT with 20 vortices')
 
 plt.xlabel('Spanwise location [m]')
