@@ -105,7 +105,7 @@ with plt.rc_context(context):
     
     plt.title('(b)')
     plt.xlabel('Number of dimensions')
-    plt.ylabel(r'$f(\vec{\bf{x}})$')
+    plt.ylabel(r'$f(\mathbf{x})$')
 
     # plt.ylim([1e-20, 1])
 
