@@ -198,32 +198,55 @@ def bfgs_opt(n, tol = 1e-6):
 
 #==========================
 
+def test_func(func, inputs, expected_outputs):
+
+    # Run the desired function
+    current_outputs = func(*inputs)
+
+    # Compare output
+    # test_result = (current_outputs== expected_outputs)
+
+    # Print log
+    print('')
+    print('======================')
+    print('Testing function ' + func.__name__)
+    print('  Inputs:')
+    print(inputs)
+    print('  Current outputs:')
+    print(current_outputs)
+    print('  Expected outputs:')
+    print(expected_outputs)
+    # print(' Test successful?')
+    # print(test_result)
+    # print('======================')
+    print('')
+
+    # Return success flag
+    # return test_result
+
+
 if __name__ == "__main__":
     # Test the functions
     os.system('clear') # for linux
     print(50 * '-')
     print('Testing rosenbrock functions:')
-    x = np.array([1.0, 1.0])
-    print(f"x = {x.tolist()}:", rosenbrock(x))
-    print(f"gradient at x = {x.tolist()}:", rosenbrock_grad(x))
-    x = np.array([-1.0, 0.0, 0.3])
-    print(f"x = {x.tolist()}:", rosenbrock(x))
-    print(f"gradient at x = {x.tolist()}:", rosenbrock_grad(x))
+    test_func(rosenbrock, [np.array([1.0, 1.0])], 0.0)
+    test_func(rosenbrock, [np.array([-1.0, 0.0, 0.3])], 114.0)
+    test_func(rosenbrock_grad, [np.array([1.0, 1.0])], np.array([0.0, 0.0]))
+    test_func(rosenbrock_grad, [np.array([-1.0, 0.0, 0.3])], np.array([-404., -202.,   60.]))
+    
+
     print('\n\n'+50 * '-')
     print('Testing optimization functions:')
     
-    print('\n1. Nelder-Mead optimization:')
-    print(nm_opt(2))
-    print(nm_opt(3))
+    test_func(nm_opt, [2], (np.array([1.00000028, 1.00000051]), 3.5147904406946316e-13, 169))
+    test_func(nm_opt, [3], (np.array([0.99999983, 0.99999961, 0.99999923]), 4.3261171377916544e-13, 338))
+
+    test_func(de_opt, [2], (np.array([0.99999997, 0.99999995]), 6.686425291204817e-15, 1710))
+    test_func(de_opt, [3], (np.array([0.99999989, 0.9999998 , 0.99999959]), 9.727695757591168e-14, 4680))
+        
+    test_func(cg_opt, [2], (np.array([0.99999949, 0.99999897]), 2.639508773268233e-13, 108))
+    test_func(cg_opt, [3], (np.array([1., 1., 1.]), 8.796853489285454e-21, 134))
     
-    print('\n2. Differential Evolution optimization:')
-    print(de_opt(2))
-    print(de_opt(3))
-    
-    print('\n3. Conjugate Gradient optimization:')
-    print(cg_opt(2))
-    print(cg_opt(3))
-    
-    print('\n4. BFGS optimization:')
-    print(bfgs_opt(2))
-    print(bfgs_opt(3))
+    test_func(bfgs_opt, [2], (np.array([1., 1.]), 2.3804051301997937e-18, 50))
+    test_func(bfgs_opt, [3], (np.array([1., 1., 1.00000001]), 3.8670228678944245e-17, 76))
