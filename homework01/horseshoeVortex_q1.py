@@ -18,8 +18,8 @@ format = 'pdf'
 saveflag = True
 #%% Image Path settings
 imagdir = Path('.')
-if not imagdir.absolute().name == 'bim1':
-    imagdir = Path('.','bim1')
+if not imagdir.absolute().name == 'homework01':
+    imagdir = Path('.','homework01')
 
 imagdir = imagdir.joinpath('images')
 imagdir.mkdir(exist_ok=True, parents=True)

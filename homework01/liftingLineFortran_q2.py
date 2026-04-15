@@ -34,8 +34,8 @@ saveflag = True
 #%%----------------------------------------------------------
 ### Path settings
 rootdir = Path('.')
-if not rootdir.absolute().name == 'bim1':
-    rootdir = Path('.','bim1')
+if not rootdir.absolute().name == 'homework01':
+    rootdir = Path('.','homework01')
 
 datadir = rootdir.joinpath('data')
 datadir.mkdir(exist_ok=True, parents=True)
