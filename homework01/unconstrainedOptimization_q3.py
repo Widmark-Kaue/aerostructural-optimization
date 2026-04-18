@@ -12,6 +12,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
+from scipy.stats import linregress
 from pathlib import Path
 from cycler import cycler
 
@@ -74,20 +75,60 @@ else:
     bfgs_result = np.loadtxt(datadir / 'bfgs_result.dat')
     
 
+## Compute linear regression for log-log data
+# nm_linreg = linregress(np.log10(n), np.log10(nm_result[:, 1]))
+nm_polyreg = np.polyfit(np.log10(n), np.log10(nm_result[:, 1]), 2)
+
+de_linreg = linregress(np.log10(n[:-7]), np.log10(de_result[:-7, 1]))
+cg_linreg = linregress(np.log10(n), np.log10(cg_result[:, 1]))
+bfgs_linreg = linregress(np.log10(n), np.log10(bfgs_result[:, 1]))
+
+## Compute R^2 for polynomial regression
+y = np.log10(nm_result[:, 1])
+y_pred = np.polyval(nm_polyreg, np.log10(n))
+ss_res = np.sum((y - y_pred)**2)
+ss_tot = np.sum((y - np.mean(y))**2)
+
+r2 = 1 - ss_res/ss_tot
+
+## Build linear regression lines
+n_fit = np.linspace(n[0], n[-1], 100)
+
+# nm_fit = np.polyval([nm_linreg.slope, nm_linreg.intercept], np.log10(n_fit)) # type: ignore
+nm_fit = np.polyval(nm_polyreg, np.log10(n_fit)) 
+
+de_fit = np.polyval([de_linreg.slope, de_linreg.intercept], np.log10(n_fit)) # type: ignore
+cg_fit = np.polyval([cg_linreg.slope, cg_linreg.intercept], np.log10(n_fit)) # type: ignore
+bfgs_fit = np.polyval([bfgs_linreg.slope, bfgs_linreg.intercept], np.log10(n_fit)) # type: ignore
 
 # Plot
 
 # Dict with default parameters in context
+colors = plt.color_sequences['Set1']
 context = {'lines.linewidth': 2, 'lines.markersize': 6,'lines.linestyle': '--','lines.marker': 'o',
-           'axes.prop_cycle': cycler('color',plt.color_sequences['Set1'])}  # create cycle of color list
+           'axes.prop_cycle': cycler('color', colors)}  # create cycle of color list
 
 with plt.rc_context(context):
     plt.figure(figsize=(16, 4.5))
     plt.subplot(1,2, 1)
-    plt.loglog(n, nm_result[:, 1], label = 'Nelder-Mead')
-    plt.loglog(n, de_result[:, 1], label = 'Differential Evolution')
-    plt.loglog(n, cg_result[:, 1], label = 'CG')
-    plt.loglog(n, bfgs_result[:, 1], label = 'BFGS')
+    # plt.loglog(n, nm_result[:, 1], 'o',
+    #            label = f'Nelder-Mead ($n=$${nm_linreg.slope:.2f}$, $R^2=$${nm_linreg.rvalue**2:.2f}$)') # type: ignore
+    
+    plt.loglog(n, nm_result[:, 1], 'o',
+               label = f'NM ($n=$${np.round(nm_polyreg[0:2], 2).tolist()}$, $R^2=$${r2:.2f}$)') # type: ignore
+    
+    plt.loglog(n, de_result[:, 1], 'o',
+               label = f'DE ($n=$${de_linreg.slope:.2f}$, $R^2=$${de_linreg.rvalue**2:.2f}$)') # type: ignore
+    plt.loglog(n, cg_result[:, 1], 'o',
+               label = f'CG ($n=$${cg_linreg.slope:.2f}$, $R^2=$${cg_linreg.rvalue**2:.2f}$)') # type: ignore
+    plt.loglog(n, bfgs_result[:, 1], 'o',
+               label = f'BFGS ($n=$${bfgs_linreg.slope:.2f}$, $R^2=$${bfgs_linreg.rvalue**2:.2f}$)') # type: ignore
+
+    # plot fit
+    plt.plot(n_fit, 10**nm_fit, '-', color=colors[0])
+    plt.plot(n_fit, 10**de_fit, '-', color=colors[1])
+    plt.plot(n_fit, 10**cg_fit, '-', color=colors[2])
+    plt.plot(n_fit, 10**bfgs_fit, '-', color=colors[3])
     
     plt.title('(a)')
     plt.xlabel('Number of dimensions')
@@ -95,6 +136,8 @@ with plt.rc_context(context):
 
     plt.legend()
     plt.grid(which='minor')
+    
+  
     
     # plt.figure(figsize=(8, 4.5))
     plt.subplot(1, 2, 2)
@@ -110,11 +153,12 @@ with plt.rc_context(context):
     # plt.ylim([1e-20, 1])
 
     # plt.legend()
+    
     plt.grid(which='both')
     
     plt.tight_layout()
     
-    plt.savefig(imagdir / f'q3.{format}', dpi=dpi, bbox_inches='tight') if saveflag else None
+    plt.savefig(imagdir / f'q3_pol.{format}', dpi=dpi, bbox_inches='tight') if saveflag else None
     plt.show()
 # Function evaluation
 
