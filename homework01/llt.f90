@@ -8,6 +8,7 @@ module llt
     ! Aeronautics Institute of Technology
     ! Sao Jose dos Campos, SP, Brazil
     
+    ! Author: Widmark Kauê Silva Cardoso
     implicit none
     
 contains

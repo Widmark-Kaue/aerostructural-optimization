@@ -250,3 +250,23 @@ if __name__ == "__main__":
     
     test_func(bfgs_opt, [2], (np.array([1., 1.]), 2.3804051301997937e-18, 50))
     test_func(bfgs_opt, [3], (np.array([1., 1., 1.00000001]), 3.8670228678944245e-17, 76))
+    
+    import matplotlib.pyplot as plt
+    from matplotlib.colors import LogNorm
+    
+    plt.figure()
+    x1 = np.linspace(-2, 2, 100)
+    x2 = np.linspace(-1, 3, 100)
+    X1, X2 = np.meshgrid(x1, x2)
+    comb = np.array([X1.flatten(), X2.flatten()]).T
+    Z = np.zeros_like(X1).flatten()
+    for i in range(len(X1.flatten())):
+        Z[i] = rosenbrock(comb[i])
+    Z = Z.reshape(X1.shape)
+    plt.contourf(X1, X2, Z, levels = 150, cmap = 'viridis', norm = LogNorm())
+    
+    plt.xlabel('$X_1$')
+    plt.ylabel('$X_2$')
+    
+    plt.colorbar(label = 'Rosenbrock function value')
+    plt.show() 

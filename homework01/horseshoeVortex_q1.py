@@ -26,19 +26,24 @@ imagdir.mkdir(exist_ok=True, parents=True)
 print("Images will be saved in:", imagdir)
 
 #%% Plotting z-component of velocity induced by a horseshoe vortex
-L = 1.0  # Length of the domain
+L = 1.0  # Length of the horseshoe vortex
 Gamma = 1.0  # Circulation
 
 y = np.linspace(-2, 2)
 w = Gamma*L/ (4*np.pi) /(y**2-L**2/4)
 
+y = np.concatenate((y, [-0.5, 0.5]))
+w = np.concatenate((w, [np.nan, np.nan]))
+idx = np.argsort(y)
+y = y[idx]
+w = w[idx]
 plt.figure(figsize=(6, 4))
 plt.plot(y, w, 'darkblue', linewidth=2)
 plt.xlabel('y [m]')
 plt.ylabel('w [m/s]')
 
 plt.xlim(-2, 2)
-plt.ylim(np.min(w), np.max(w))
+plt.ylim(np.min(w[np.isfinite(w)]), np.max(w[np.isfinite(w)]))
 
 plt.grid()
 plt.savefig(imagdir / f'q1.{format}', dpi=dpi, bbox_inches='tight') if saveflag else None

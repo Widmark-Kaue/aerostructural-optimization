@@ -193,7 +193,7 @@ plt.savefig(imagdir / f'q2_b.{format}', dpi=dpi, bbox_inches='tight') if savefla
 #%%----------------------------------------------------------
 ### c) Plot the convergence history of the LLT solver for 20 vortices
 
-nvVec = np.arange(4, 202, 2)
+nvVec = np.arange(4, 252, 2)
 clVec = np.zeros_like(nvVec, dtype=float)
 cdVec = np.zeros_like(nvVec, dtype=float)
 print(50 * '-')
@@ -210,6 +210,10 @@ for i, nv in enumerate(nvVec):
 clDiff = np.abs(np.diff(clVec))/clVec[1:]
 cdDiff = np.abs(np.diff(cdVec))/cdVec[1:]
 
+idx_cl = np.searchsorted(clDiff, 1e-5)
+idx_cd = np.searchsorted(cdDiff, 1e-5)
+print(50 * '-')
+print(f'Final results with tol = 1e-5: cl = {clVec[idx_cl]:.5f}, cd = {cdVec[idx_cd]:.8f}')
 
 #### Plotting convergence history of CL and CD with number of vortices
 fig = plt.figure(figsize=(12,5))
@@ -235,8 +239,10 @@ ax2.set_title('(b)')
 ax2.grid()
 
 # Plot differences
-ax3.semilogy(nvVec[1:], clDiff, 'o-',color = 'darkred', label=r'Error $C_L$')
-ax3.semilogy(nvVec[1:], cdDiff, 's-',color = 'darkblue', label=r'Error $C_D$')
+# ax3.semilogy(nvVec[:-1], clDiff, 'o-',color = 'darkred', label=r'Error $C_L$')
+# ax3.semilogy(nvVec[:-1], cdDiff, 's-',color = 'darkblue', label=r'Error $C_D$')
+ax3.loglog(nvVec[:-1], clDiff, 'o-',color = 'darkred', label=r'Error $C_L$')
+ax3.loglog(nvVec[:-1], cdDiff, 's-',color = 'darkblue', label=r'Error $C_D$')
 
 ax3.set_xlabel('Number of Vortices')
 ax3.set_ylabel(r'Relative Difference')
