@@ -239,8 +239,6 @@ ax2.set_title('(b)')
 ax2.grid()
 
 # Plot differences
-# ax3.semilogy(nvVec[:-1], clDiff, 'o-',color = 'darkred', label=r'Error $C_L$')
-# ax3.semilogy(nvVec[:-1], cdDiff, 's-',color = 'darkblue', label=r'Error $C_D$')
 ax3.loglog(nvVec[:-1], clDiff, 'o-',color = 'darkred', label=r'Error $C_L$')
 ax3.loglog(nvVec[:-1], cdDiff, 's-',color = 'darkblue', label=r'Error $C_D$')
 

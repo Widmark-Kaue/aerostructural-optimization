@@ -72,7 +72,7 @@ contains
 
         ! Compute the induced velocity at each horseshoe vortex using the Biot-Savart law
         do ii = 1, nelem
-            wi(ii) = gama(ii)*panel_length/pi * sum(1/(4*(yc(ii) - yc)**2 - panel_length**2)) ! Induced velocity at each horseshoe vortex
+            wi(ii) = panel_length/pi * sum(gama/(4*(yc(ii) - yc)**2 - panel_length**2)) ! Induced velocity at each horseshoe vortex
         end do
 
         ! Compute the induced AoA, effective AoA and effective velocity at each wing section
