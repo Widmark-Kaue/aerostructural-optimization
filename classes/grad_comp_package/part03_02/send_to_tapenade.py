@@ -33,16 +33,16 @@ output_vars = 'f g h'
 '''
 
 # List of files that will be differentiated
-files = ['???']
+files = ['mymodule2.f90']
 
 # Name of top routine
-top_routine = '???'
+top_routine = 'test_func'
 
 # Output variables (separate with whitespace)
-output_vars = '???'
+output_vars = 'f'
 
 # Inputs variables (separate with whitespace)
-input_vars = '???'
+input_vars = 'x y z'
 
 #===================================================
 
@@ -118,7 +118,7 @@ def diff(files,
     # BUILD THE TAPENADE COMMAND
 
     # Define routines and variables that will be differentiated
-    diff_comm = '-head "%s(%s)\(%s)"'%(top_routine,input_vars,output_vars)
+    diff_comm = '-head "%s(%s)\\(%s)"'%(top_routine,input_vars,output_vars) # Note: precisa colorar mais uma barra
 
     # Differentiation mode flag
     if mode == 'forward':

@@ -59,19 +59,23 @@ contains
 
     implicit none
     real, intent(in) :: x,y,z
-    real, intent(in) :: xd,yd,zd
+    real, intent(in) :: xd,yd,zd ! Necessário adicionar input para as derivadas (sementes)
     real, intent(out) :: f
     real, intent(out) :: fd
     real :: a
     real :: ad
 
+    ! Linha original
     a = y*cos(x) + z
 
+    ! Linha para derivada
     ad = -y*sin(x)*xd + cos(x)*yd + zd
 
+    ! Linha original
     f = a**2 + 2.0/x
 
-    fd = 2.0*a*ad - 2.0/x**2*xd
+    ! Linha para derivada
+    fd = 2.0*a*ad - (2.0/x**2)*xd
 
   end subroutine test_func_md
 
@@ -81,7 +85,7 @@ contains
 
     implicit none
     real, intent(in) :: x,y,z
-    real, intent(out) :: xb,yb,zb
+    real, intent(out) :: xb,yb,zb ! toda variável original vai ter uma versão barra
     real, intent(out) :: f
     real, intent(in) :: fb
     real :: a
@@ -99,14 +103,14 @@ contains
     zb = 0.0
     ab = 0.0
 
-    ! f = a**2 + 2.0/x
+    ! Linha 2: f = a**2 + 2.0/x
+    xb = xb - (2.0/x**2)*fb
     ab = ab + 2*a*fb
-    xb = xb - 2.0/x**2*fb
 
-    ! a = y*cos(x) + z
+    ! Linha 1: a = y*cos(x) + z
     xb = xb - y*sin(x)*ab
     yb = yb + cos(x)*ab
-    zb = zb + ab
+    zb = zb + 1.0*ab
 
   end subroutine test_func_mb
 

@@ -3,8 +3,9 @@
 
 program main2
 
-  use mymodule2, only : test_func, test_func_deriv, test_func_complex, &
-                        test_func_md, test_func_mb
+  use mymodule2, only : test_func, test_func_deriv, test_func_complex, test_func_md, test_func_mb
+  use mymodule2_d, only : test_func_d
+  use mymodule2_b, only : test_func_b
 
   implicit none
 
@@ -36,6 +37,7 @@ program main2
 
   ! dfdx
   call test_func(x+h, y, z, fh)
+
   dfdx_fd = (fh - f)/h
   errorx_fd = abs(1 - dfdx_fd/dfdx_an)
 
@@ -80,7 +82,7 @@ program main2
   xd = 1.0
   yd = 0.0
   zd = 0.0
-  call test_func_md(x,xd,y,yd,z,zd,f,fd)
+  call test_func_d(x,xd,y,yd,z,zd,f,fd)
   dfdx_md = fd
   errorx_md = abs(1 - dfdx_md/dfdx_an)
 
@@ -88,7 +90,7 @@ program main2
   xd = 0.0
   yd = 1.0
   zd = 0.0
-  call test_func_md(x,xd,y,yd,z,zd,f,fd)
+  call test_func_d(x,xd,y,yd,z,zd,f,fd)
   dfdy_md = fd
   errory_md = abs(1 - dfdy_md/dfdy_an)
 
@@ -96,7 +98,7 @@ program main2
   xd = 0.0
   yd = 0.0
   zd = 1.0
-  call test_func_md(x,xd,y,yd,z,zd,f,fd)
+  call test_func_d(x,xd,y,yd,z,zd,f,fd)
   dfdz_md = fd
   errorz_md = abs(1 - dfdz_md/dfdz_an)
 
@@ -108,7 +110,7 @@ program main2
 
   ! Initialize reverse seeds
   fb = 1.0
-  call test_func_mb(x,xb,y,yb,z,zb,f,fb)
+  call test_func_b(x,xb,y,yb,z,zb,f,fb)
   dfdx_mb = xb
   dfdy_mb = yb
   dfdz_mb = zb
@@ -119,6 +121,5 @@ program main2
   print *,''
   print *,'dfdx  MB:',dfdx_mb,dfdy_mb,dfdz_mb
   print *,'error MB:',errorx_mb,errory_mb,errorz_mb
-
 
 end program main2
