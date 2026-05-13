@@ -8,14 +8,14 @@ from fem_module_b import fem_module_b as fem_b # type: ignore
 
 # Define test point
 # Define areas
-n_bars = 3
+n_bars = 300
 A0 = np.ones(n_bars)*0.5
 d0 = np.linspace(0.0, 0.2, n_bars)**2
 
 # FINITE-DIFFERENCE TEST
 
 # Define step size
-h = 1e-6
+h = 1e-4
 
 # Define perturbations of input variables
 Ad = np.ones_like(A0)*0.1
@@ -23,7 +23,7 @@ dd = np.ones_like(d0)*0.02
 
 # Compute reference point
 res, C, V = fem.main(A0, d0)
-print(res)
+# print(res)
 
 
 # Compute perturbed point
@@ -44,7 +44,7 @@ FDtest_C = 1 - Cd_fd/Cd
 FDtest_V = 1 - Vd_fd/Vd
 
 print('FD test')
-print('res:', FDtest_res)
+print('res:', np.max(np.abs(FDtest_res)))
 print('C:', FDtest_C)
 print('V:', FDtest_V)
 print('')
