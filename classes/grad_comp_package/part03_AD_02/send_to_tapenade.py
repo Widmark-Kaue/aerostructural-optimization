@@ -118,7 +118,7 @@ def diff(files,
     # BUILD THE TAPENADE COMMAND
 
     # Define routines and variables that will be differentiated
-    diff_comm = '-head "%s(%s)\(%s)"'%(top_routine,input_vars,output_vars)
+    diff_comm = '-head "%s(%s)\\(%s)"'%(top_routine,input_vars,output_vars)
 
     # Differentiation mode flag
     if mode == 'forward':
