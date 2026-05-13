@@ -30,18 +30,18 @@ program main2
   call test_func(x, y, z, f)
 
   ! dfdx
-  ???
-  dfdx_fd = ???
+  ! ???
+  dfdx_fd = ! ???
   errorx_fd = abs(1 - dfdx_fd/dfdx_an)
 
   ! dfdy
-  ???
-  dfdy_fd = ???
+  !???
+  ! dfdy_fd = ???
   errory_fd = abs(1 - dfdy_fd/dfdy_an)
 
   ! dfdz
-  ???
-  dfdz_fd = ???
+  ! ???
+  ! dfdz_fd = ???
   errorz_fd = abs(1 - dfdz_fd/dfdz_an)
 
   print *,''
@@ -56,12 +56,12 @@ program main2
   errorx_cs = abs(1 - dfdx_cs/dfdx_an)
 
   ! dfdy
-  ???
+  ! ???
   dfdy_cs = imag(fhc)/h
   errory_cs = abs(1 - dfdy_cs/dfdy_an)
 
   ! dfdz
-  ???
+  ! ???
   dfdz_cs = imag(fhc)/h
   errorz_cs = abs(1 - dfdz_cs/dfdz_an)
 

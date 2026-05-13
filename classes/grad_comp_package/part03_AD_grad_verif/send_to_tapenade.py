@@ -33,16 +33,16 @@ output_vars = 'f g h'
 '''
 
 # List of files that will be differentiated
-files = ['???']
+files = ['fem_module.f90']
 
 # Name of top routine
-top_routine = '???'
+top_routine = 'main'
 
 # Output variables (separate with whitespace)
-output_vars = '???'
+output_vars = 'res C V'
 
 # Inputs variables (separate with whitespace)
-input_vars = '???'
+input_vars = 'a d'
 
 #===================================================
 
@@ -112,8 +112,8 @@ def diff(files,
         dirname = output_directory + '_b'
 
     # Check if we already created the folder with differentiated files
-    if not os.path.isdir(dirname):
-        os.mkdir(dirname)
+    if not os.path.isdir(dirname): # type: ignore
+        os.mkdir(dirname) # type: ignore
 
     # BUILD THE TAPENADE COMMAND
 
@@ -127,14 +127,14 @@ def diff(files,
         mode_flag = '-b'
 
     # Directory where files will be stored
-    output_flag = '-O '+dirname
+    output_flag = '-O '+dirname # type: ignore
 
     # List of files that will be differentiated
     files_comm = ' '.join(files)
 
     # Run the command line
     os.system('tapenade %s %s %s %s'%(diff_comm,
-                                      mode_flag,
+                                      mode_flag, # type: ignore
                                       output_flag,
                                       files_comm))
 
@@ -145,7 +145,7 @@ def diff(files,
         print('Replacing REAL4 by REAL8')
 
         # Get list of files in the extracted directory
-        files = os.listdir(dirname)
+        files = os.listdir(dirname) # type: ignore
 
         # Loop over the differentiated file names
         for ff in files:
@@ -154,7 +154,7 @@ def diff(files,
             if '_b.f90' in ff:
 
                 # Get full filename
-                ff_full = os.path.join(dirname,ff)
+                ff_full = os.path.join(dirname,ff)# type: ignore
 
                 # Replace real4 by real8
                 for line in fileinput.input([ff_full], inplace=True):
@@ -167,7 +167,7 @@ def diff(files,
         print('Replacing DIFF in module names')
 
         # Get list of files in the extracted directory
-        files = os.listdir(dirname)
+        files = os.listdir(dirname)# type: ignore
 
         # Set file differentiation tag
         if mode == 'forward':
@@ -181,14 +181,14 @@ def diff(files,
         for ff in files:
 
             # Check if this is a differentiated file
-            if filetag in ff:
+            if filetag in ff:# type: ignore
 
                 # Get full filename
-                ff_full = os.path.join(dirname,ff)
+                ff_full = os.path.join(dirname,ff)# type: ignore
 
                 # Replace real4 by real8
                 for line in fileinput.input([ff_full], inplace=True):
-                    print(line.replace('_DIFF', modetag), end='')
+                    print(line.replace('_DIFF', modetag), end='')# type: ignore
 
 
 #===================================================

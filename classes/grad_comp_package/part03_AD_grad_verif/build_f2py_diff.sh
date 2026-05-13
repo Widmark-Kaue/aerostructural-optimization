@@ -3,7 +3,7 @@
 # The differentiated modes are also included here
 
 # Define variables
-MOD=???
+MOD=fem_module
 FFLAGS="-O2 -fPIC -fdefault-real-8 -fbounds-check -fallow-argument-mismatch"
 CFLAGS="-fPIC"
 
@@ -15,8 +15,8 @@ rm *.so
 # Differentiate the codes
 rm -rf TapenadeResults_d
 rm -rf TapenadeResults_b
-python3 send_to_tapenade_${MOD}.py f
-python3 send_to_tapenade_${MOD}.py r
+python3 send_to_tapenade.py f
+python3 send_to_tapenade.py r
 
 # Make a copy of the file that maps Fortran types to Python types
 cp f2py_f2cmap .f2py_f2cmap
