@@ -1,0 +1,2 @@
+python3 send_to_tapenade.py f
+python3 send_to_tapenade.py r
