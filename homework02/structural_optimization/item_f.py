@@ -44,7 +44,7 @@ drdx = cte*np.array([[12*v1 - 6*phi1, 12*v1 + 6*phi1 - 12*v2 + 6*phi2   ],
                  ])
 print(f'drdx = {drdx}')
 
-cte_G = 2*(R*E/sigma_y)**2
+cte_G = -2*(R*E/sigma_y)**2
 dGksdp = cte_G*np.array([
                     4*36*v1 - 2*36*v2 + 36*phi2,
                     40*phi1 - 36*v2 + 16*phi2,
