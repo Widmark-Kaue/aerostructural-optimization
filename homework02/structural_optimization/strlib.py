@@ -47,10 +47,10 @@ class StructuralOpt:
         p = sol.x
         return p
     
-    def _find_adjoint_vars(self,delr_delp,delf_delp):
-        resfun = lambda psi: self._resfun(delr_delp.T,psi,-delf_delp.T)
+    def _find_adjoint_vars(self,delrdelp,delfdelp):
+        resfun = lambda psi: self._resfun(delrdelp.T,psi,-delfdelp.T)
 
-        psi0= np.ones_like(delf_delp)
+        psi0= np.ones_like(delfdelp)
         sol = root(resfun,psi0)
         psi = sol.x
         return psi
