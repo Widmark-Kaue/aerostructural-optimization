@@ -47,6 +47,17 @@ class StructuralOpt:
 
         K = cte*(mat + mat.T - np.eye(mat.shape[0])*mat)
         return K
+    
+    def _build_delrdelx(self,p):
+        cte = np.pi*self.R**3*self.E/1000
+        v1,phi1,v2,phi2 = p
+        mat = np.array([[12*v1-6*phi1, 12*v1+6*phi1-12*v2+6*phi2    ],
+                        [-6*v1+4*phi1, 6*v1+4*phi1-6*v2+2*phi2      ],
+                        [0,            -12*v1-6*phi1+12*v2-6*phi2   ],
+                        [0,             6*v1+2*phi1-6*v2+4*phi2     ]
+                        ])
+        delrdelx = cte*mat
+        return delrdelx
 
     def _resfun(self, A,b,c):
         return A@b - c 
@@ -96,7 +107,7 @@ class StructuralOpt:
         delrdelp = K
         psiG = self._find_adjoint_vars(delrdelp,delGksdelp)
         
-        delrdelx =np.zeros((4.2))
+        delrdelx = self._build_delrdelx(p)
         dGksdx = psiG.T @ delrdelx
         return dGksdx
         
