@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.optimize import root
+from strlib import StructuralOpt
 
 # Constantes
 E = 73.1e9          # [Pa]
@@ -66,4 +67,8 @@ psiG = res.x
 print(f'psiG = {psiG}')
 dGksdx = psiG.T @ drdx
 print(f'dGksdx = {dGksdx}')
+
+
+#%% Teste
+prob = StructuralOpt(R, E,sigma_y,rho,F1,F2)
 
