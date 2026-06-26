@@ -71,4 +71,8 @@ print(f'dGksdx = {dGksdx}')
 
 #%% Teste
 prob = StructuralOpt(R, E,sigma_y,rho,F1,F2)
+x=[ta,tb]
 
+print('dmdx= ', prob.objfungrad(x))
+
+print('dGksdx = ',  prob.confunKSgrad(x))

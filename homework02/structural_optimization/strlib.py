@@ -27,7 +27,7 @@ class StructuralOpt:
         return self.R*self.E/self.sigma_y
     
     def _build_force_vector(self):
-        self.F = np.array([self.F1, 0, self.F2, 0]).reshape(-1,1)
+        self.F = np.array([self.F1, 0, self.F2, 0])
     
     def _build_weight_matrix(self):
         self.a = np.array([ [-6,  2,  0,  0],
@@ -51,8 +51,7 @@ class StructuralOpt:
     def _resfun(self, A,b,c):
         return A@b - c 
 
-    def _find_state_vars(self,x):
-        K = self._build_stiffness_matrix(x[0],x[1])
+    def _find_state_vars(self,K):
         resfun = lambda p: self._resfun(K,p,self.F)
         
         p0 = np.ones_like(self.F)
@@ -89,10 +88,16 @@ class StructuralOpt:
         return Gks 
     
     def confunKSgrad(self, x):
-        p = self._find_state_vars(x)
+        K = self._build_stiffness_matrix(x[0],x[1])
+        p = self._find_state_vars(K)
         si = self.a@p
         delsidelp = self.a
         delGksdelp = -2*self.alpha**2 * (si @ delsidelp)
-        return delGksdelp 
+        delrdelp = K
+        psiG = self._find_adjoint_vars(delrdelp,delGksdelp)
+        
+        delrdelx =np.zeros((4.2))
+        dGksdx = psiG.T @ delrdelx
+        return dGksdx
         
         
