@@ -69,7 +69,7 @@ dGksdx = psiG.T @ drdx
 print(f'dGksdx = {dGksdx}')
 
 
-#%% Teste
+#%% Validação da classe
 prob = StructuralOpt(R, E,sigma_y,rho,F1,F2)
 x=[ta,tb]
 

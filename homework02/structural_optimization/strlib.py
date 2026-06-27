@@ -11,8 +11,11 @@ class StructuralOpt:
     F1: float           # [N]
     F2: float           # [N]
     rhoKS: float = 10   
+    save_history:bool = False
     F: np.ndarray = field(init=False, default_factory=lambda: np.array([]))
     a: np.ndarray = field(init=False,default_factory=lambda: np.array([]))
+    x_hist:list = field(init=False, default_factory=list)
+    f_hist:list = field(init=False, default_factory=list)
     
     def __post_init__(self):
         
@@ -81,6 +84,9 @@ class StructuralOpt:
     def objfun(self, x):
         ta,tb = x
         m = 2*np.pi*self.R*self.rho/1e3 *(ta + tb)
+        if self.save_history:
+            self.x_hist.append(x)
+            self.f_hist.append(m)
         return m
     
     def objfungrad(self, x):
@@ -89,7 +95,8 @@ class StructuralOpt:
         return dmdx
 
     def confun(self, x):
-        p = self._find_state_vars(x)
+        K = self._build_stiffness_matrix(x[0],x[1])
+        p = self._find_state_vars(K)
         gis = 1 - self.alpha**2 * self.a@p
         return gis
     
