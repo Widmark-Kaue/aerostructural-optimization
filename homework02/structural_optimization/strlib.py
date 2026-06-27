@@ -97,9 +97,26 @@ class StructuralOpt:
     def confun(self, x):
         K = self._build_stiffness_matrix(x[0],x[1])
         p = self._find_state_vars(K)
-        gis = 1 - self.alpha**2 * self.a@p
+        si = self.a@p
+        gis = 1 - self.alpha**2 * si**2
         return gis
     
+    def confungrad(self, x):
+        K = self._build_stiffness_matrix(x[0],x[1])
+        p = self._find_state_vars(K)
+        si = self.a@p
+        delsidelp = self.a
+        delrdelp = K
+        delrdelx = self._build_delrdelx(p)
+        
+        dgidx = []
+        for i in range(len(si)):
+            delgidelp = -2*self.alpha**2*si[i]*delsidelp[i]
+            psigis = self._find_adjoint_vars(delrdelp,delgidelp)
+            dgidx.append(psigis.T @ delrdelx)
+        
+        return dgidx
+            
     def confunKS(self,x):
         gis = self.confun(x)
         Gks = -1/self.rhoKS * np.log(np.sum(np.exp(-self.rhoKS*gis)))
