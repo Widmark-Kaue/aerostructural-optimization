@@ -44,10 +44,10 @@ ta = tb = 5         # [mm]
 tol = 1e-8
 options = {'maxiter': 20000}
 
-#%% Create strcutural optimize object
-st = StructuralOpt(R,E,sigma_y,rho,F1,F2,rhoKS=rhoKS, save_history=True)
 
 #%% Optimization - ITEM G
+# Create strcutural optimize object
+st = StructuralOpt(R,E,sigma_y,rho,F1,F2,rhoKS=rhoKS, save_history=True)
 
 # Restrições
 con = {
@@ -77,12 +77,14 @@ f_hist = np.array(st.f_hist).reshape(-1,1)
 print(result)
 print()
 print('Optimal valus:')
-print(f' [ta, tb]: {result.x} [mm]')
-print(f'm = {result.fun} [kg]')
+print(f' [ta, tb]: {np.round(result.x,4)} [mm]')
+print(f'm = {result.fun:.4f} [kg]')
 
 if saveHistory:
     data = np.concatenate((x_hist,f_hist), axis=1)
     np.savetxt(datadir / 'opt_KS_history.dat', data, header='ta\ttb\tm')
+#%%
+gis = st.confunKS(opt_x_val) 
 
 #%% Plot
 gen = np.arange(1,len(f_hist)+1)
@@ -115,7 +117,7 @@ plt.savefig(imagdir / f'q1_g.{format}', dpi=dpi, bbox_inches='tight') if savefla
 #%% OPTIMIZATION - ITEM H
 st.save_history = False
 
-rhoKSValues1 = np.arange(1,10,0.2)
+rhoKSValues1 = np.arange(1.4,10,0.2)
 rhoKSValues2 = np.arange(10,101)
 rhoKSValues = np.concatenate((rhoKSValues1,rhoKSValues2))
 X = np.zeros((len(rhoKSValues),2))
@@ -155,6 +157,8 @@ plt.xlabel(r'$1/\rho_{KS}$')
 plt.ylabel(r'$\vec{x}/\vec{x}_{\text{ref}}$')
 plt.title('(a)')
 
+plt.ylim(0,9)
+plt.yticks(np.arange(0,9))
 plt.grid()
 plt.legend()
 
@@ -165,6 +169,8 @@ plt.plot(1/rhoKSValues,M_mod,'ko')
 plt.xlabel(r'$1/\rho_{KS}$')
 plt.ylabel(r'$m/m_{\text{ref}}$')
 plt.title('(b)')
+
+plt.ylim(0,7)
 
 plt.grid()
 

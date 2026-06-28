@@ -120,14 +120,14 @@ class StructuralOpt:
             # Total derivative for each constraint
             dgidx.append(psigis.T @ delrdelx)
         
-        return np.array(dgidx)
+        return dgidx
             
     def confunKS(self,x):
         # Compute Isolated constraints
         gis = self.confun(x)
         
         # Compute aggregation constraint
-        Gks = - 1/self.rhoKS * np.log(np.sum(np.exp(-self.rhoKS*gis)))+1
+        Gks = (- 1/self.rhoKS) * np.log(np.sum(np.exp(-self.rhoKS*gis)))
         return Gks 
     
     def confunKSgrad(self, x):

@@ -14,10 +14,18 @@ set_aiaa_style(16)
 dpi = 600
 format = 'pdf'
 saveflag = True
+#%% Data settings
+saveHistory = False
+
 #%% Path settings
 rootdir = Path('.')
 if not rootdir.absolute().name == 'structural_optimization':
     rootdir = Path('.','structural_optimization')
+
+
+datadir = rootdir.joinpath('data')
+datadir.mkdir(exist_ok=True, parents=True)
+print("Data will be saved in:", datadir)
 
 imagdir = rootdir.joinpath('images')
 imagdir.mkdir(exist_ok=True)
@@ -33,7 +41,7 @@ rhoKS = 10          #
 ta = tb = 5         # [mm]
 
 # Options for optmizer
-tol = 1e-6
+tol = 1e-8
 options = {'maxiter': 20000}
 
 #%% Create strcutural optimize object
@@ -44,8 +52,9 @@ st = StructuralOpt(R,E,sigma_y,rho,F1,F2,rhoKS=rhoKS, save_history=True)
 # Restrições
 con = {
     'type': 'ineq',
-    'fun': st.confunKS,
-    'jac': st.confunKSgrad}
+    'fun': st.confun,
+    'jac': st.confungrad}
+
 
 # Bounds
 bounds = [[0.1,50]]*2
@@ -63,14 +72,15 @@ result = minimize(st.objfun,x0,
 
 opt_x_val = result.x
 opt_m_val = result.fun
+x_hist = np.array(st.x_hist)
+f_hist = np.array(st.f_hist).reshape(-1,1)
+
 print(result)
 print()
 print('Optimal valus:')
-print(f' [ta, tb]: {result.x} [mm]')
-print(f'm = {result.fun} [kg]')
+print(f' [ta, tb]: {np.round(result.x,4)} [mm]')
+print(f'm = {result.fun:.4f} [kg]')
 #%% Plot
-x_hist = np.array(st.x_hist)
-f_hist = np.array(st.f_hist)
 gen = np.arange(1,len(f_hist)+1)
 
 fig = plt.figure(figsize=(10,4))
@@ -95,63 +105,6 @@ plt.title('(b)')
 plt.grid()
 
 plt.tight_layout()
-plt.savefig(imagdir / f'q1_g.{format}', dpi=dpi, bbox_inches='tight') if saveflag else None
+plt.savefig(imagdir / f'q1_i.{format}', dpi=dpi, bbox_inches='tight') if saveflag else None
 # plt.show()
-
-#%% OPTIMIZATION - ITEM H
-st.save_history = False
-
-rhoKSValues = np.arange(2,51)
-X = np.zeros((len(rhoKSValues),2))
-M = np.zeros(len(rhoKSValues))
-
-for i in range(len(rhoKSValues)):
-    st.rhoKS = rhoKSValues[i]
-    result = minimize(st.objfun,x0, 
-                jac=st.objfungrad,
-                constraints=[con],
-                bounds=bounds,
-                method='slsqp',
-                tol = tol,
-                options = options)
-    
-    print('---------------------------')
-    print(f'rhoKS = {rhoKSValues[i]}')
-    print(result.message)
-    if result.success:
-        X[i] = result.x
-        M[i] = result.fun
-#%% plot
-X_mod = np.zeros_like(X)
-X_mod[:,0] =  X[:,0]/opt_x_val[0]
-X_mod[:,1] =  X[:,1]/opt_x_val[1]
-
-M_mod =  M/opt_m_val
-
-fig = plt.figure(figsize=(10,4))
-plt.subplot(1,2,1)
-# plt.plot(1/rhoKSValues,X[:,0]/opt_x_val[0],'ro', label = r'$t_a/t_{a,\text{ref}}$')
-# plt.plot(1/rhoKSValues,X[:,1]/opt_x_val[1],'bo',label = r'$t_b/t_{b,\text{ref}}$')
-plt.plot(1/rhoKSValues,X_mod[:,0],'ro', label = r'$t_a/t_{a,\text{ref}}$')
-plt.plot(1/rhoKSValues,X_mod[:,1],'bo',label = r'$t_b/t_{b,\text{ref}}$')
-
-plt.xlabel(r'$1/\rho_{KS}$')
-plt.ylabel(r'$\vec{x}/\vec{x}_{\text{ref}}$')
-plt.title('(a)')
-
-plt.grid()
-plt.legend()
-
-plt.subplot(1,2,2)
-# plt.plot(1/rhoKSValues,M/opt_m_val,'ko')
-plt.plot(1/rhoKSValues,M_mod,'ko')
-
-plt.xlabel(r'$1/\rho_{KS}$')
-plt.ylabel(r'$m/m_{\text{ref}}$')
-plt.title('(b)')
-
-plt.grid()
-
-plt.tight_layout()
-plt.savefig(imagdir / f'q1_h.{format}', dpi=dpi, bbox_inches='tight') if saveflag else None
-plt.show()
+# %%
