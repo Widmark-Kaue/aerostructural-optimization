@@ -13,7 +13,7 @@ class StructuralOpt:
     rhoKS: float = 10   
     save_history:bool = False
     F: np.ndarray = field(init=False, default_factory=lambda: np.array([]))
-    a: np.ndarray = field(init=False,default_factory=lambda: np.array([]))
+    A: np.ndarray = field(init=False,default_factory=lambda: np.array([]))
     x_hist:list = field(init=False, default_factory=list)
     f_hist:list = field(init=False, default_factory=list)
     
@@ -23,7 +23,7 @@ class StructuralOpt:
         self._build_force_vector() 
 
         # build weight matrix
-        self._build_weight_matrix()
+        self._build_A_matrix()
 
     @property
     def alpha(self):
@@ -32,8 +32,8 @@ class StructuralOpt:
     def _build_force_vector(self):
         self.F = np.array([self.F1, 0, self.F2, 0])
     
-    def _build_weight_matrix(self):
-        self.a = np.array([ [-6,  2,  0,  0],
+    def _build_A_matrix(self):
+        self.A = np.array([ [-6,  2,  0,  0],
                             [-6,  4,  0,  0],
                             [6,   4,  -6, 2],
                             [6,   2,  -6, 4]])
@@ -66,20 +66,12 @@ class StructuralOpt:
         return A@b - c 
 
     def _find_state_vars(self,K):
-        resfun = lambda p: self._resfun(K,p,self.F)
-        
-        p0 = np.ones_like(self.F)
-        sol = root(resfun,p0)
-        p = sol.x
-        return p
+        # Since K * p = F is a linear system, we solve it directly
+        return np.linalg.solve(K, self.F)
     
     def _find_adjoint_vars(self,delrdelp,delfdelp):
-        resfun = lambda psi: self._resfun(delrdelp.T,psi,-delfdelp.T)
-
-        psi0= np.ones_like(delfdelp)
-        sol = root(resfun,psi0)
-        psi = sol.x
-        return psi
+        # Since delrdelp.T * psi = -delfdelp.T is a linear system, we solve it directly
+        return np.linalg.solve(delrdelp.T, -delfdelp)
         
     def objfun(self, x):
         ta,tb = x
@@ -95,43 +87,75 @@ class StructuralOpt:
         return dmdx
 
     def confun(self, x):
+        # Solve physics
         K = self._build_stiffness_matrix(x[0],x[1])
         p = self._find_state_vars(K)
-        si = self.a@p
+        
+        # Compute isolated constraints
+        si = self.A@p
         gis = 1 - self.alpha**2 * si**2
         return gis
     
     def confungrad(self, x):
+        # Solve physics
         K = self._build_stiffness_matrix(x[0],x[1])
         p = self._find_state_vars(K)
-        si = self.a@p
-        delsidelp = self.a
+        
+        # Compute si vector
+        si = self.A@p
+        
+        # Compute partial derivatives
+        delsidelp = self.A
         delrdelp = K
         delrdelx = self._build_delrdelx(p)
         
         dgidx = []
         for i in range(len(si)):
+            # Compute partial derivate of g related to state vars (for each constraint)
             delgidelp = -2*self.alpha**2*si[i]*delsidelp[i]
+            
+            # Solve adjoint equation for each constraint
             psigis = self._find_adjoint_vars(delrdelp,delgidelp)
+           
+            # Total derivative for each constraint
             dgidx.append(psigis.T @ delrdelx)
         
-        return dgidx
+        return np.array(dgidx)
             
     def confunKS(self,x):
+        # Compute Isolated constraints
         gis = self.confun(x)
-        Gks = -1/self.rhoKS * np.log(np.sum(np.exp(-self.rhoKS*gis)))
+        
+        # Compute aggregation constraint
+        Gks = - 1/self.rhoKS * np.log(np.sum(np.exp(-self.rhoKS*gis)))+1
         return Gks 
     
     def confunKSgrad(self, x):
+        # Solve physics
         K = self._build_stiffness_matrix(x[0],x[1])
         p = self._find_state_vars(K)
-        si = self.a@p
-        delsidelp = self.a
-        delGksdelp = -2*self.alpha**2 * (si @ delsidelp)
-        delrdelp = K
-        psiG = self._find_adjoint_vars(delrdelp,delGksdelp)
         
+        # Compute isoltated constraints
+        si = self.A@p
+        gis = 1 - self.alpha**2 * si**2
+        
+        
+        # Calculate the KS weights
+        w = np.exp(-self.rhoKS*gis)
+        wi = w / np.sum(w)
+        
+        # Partial derivatives
+        # delGksdelp = sum( w_i * dg_i/dp )
+        # where dg_i/dp = -2 * alpha^2 * s_i * ds_i/dp
+        delsidelp = self.A
+        delGksdelp = -2*self.alpha**2 * (wi * si) @ delsidelp
+        delrdelp = K
         delrdelx = self._build_delrdelx(p)
+        
+        # Solve adjoint equation
+        psiG = self._find_adjoint_vars(delrdelp,delGksdelp)
+       
+        # Total derivative
         dGksdx = psiG.T @ delrdelx
         return dGksdx
         

@@ -45,13 +45,31 @@ drdx = cte*np.array([[12*v1 - 6*phi1, 12*v1 + 6*phi1 - 12*v2 + 6*phi2   ],
                  ])
 print(f'drdx = {drdx}')
 
-cte_G = -2*(R*E/sigma_y)**2
-dGksdp = cte_G*np.array([
-                    4*36*v1 - 2*36*v2 + 36*phi2,
-                    40*phi1 - 36*v2 + 16*phi2,
-                    -72*v1 - 36*phi1 + 72*v2 - 36*phi2,
-                    36*v1 + 16*phi1 - 36*v2 + 20*phi2
-                    ])
+# Calculate s_i and g_i
+si = np.array([
+    -6*v1 + 2*phi1,
+    -6*v1 + 4*phi1,
+    6*v1 + 4*phi1 - 6*v2 + 2*phi2,
+    6*v1 + 2*phi1 - 6*v2 + 4*phi2
+])
+
+alpha = R * E / sigma_y
+gis = 1 - alpha**2 * si**2
+
+# Calculate weights
+w = np.exp(-rhoKs * gis)
+wi = w / np.sum(w)
+
+# ds_i/dp
+delsidelp = np.array([
+    [-6,  2,  0,  0],
+    [-6,  4,  0,  0],
+    [ 6,  4, -6,  2],
+    [ 6,  2, -6,  4]
+])
+
+# dGksdp
+dGksdp = -2 * alpha**2 * (wi * si) @ delsidelp
 print(f'dGksdp = {dGksdp}')
 
 # Derivada total m
