@@ -41,7 +41,7 @@ rhoKS = 10          #
 ta = tb = 5         # [mm]
 
 # Options for optmizer
-tol = 1e-6
+tol = 1e-8
 options = {'maxiter': 20000}
 
 #%% Create strcutural optimize object
@@ -115,7 +115,9 @@ plt.savefig(imagdir / f'q1_g.{format}', dpi=dpi, bbox_inches='tight') if savefla
 #%% OPTIMIZATION - ITEM H
 st.save_history = False
 
-rhoKSValues = np.arange(2,51)
+rhoKSValues1 = np.arange(1,10,0.2)
+rhoKSValues2 = np.arange(10,101)
+rhoKSValues = np.concatenate((rhoKSValues1,rhoKSValues2))
 X = np.zeros((len(rhoKSValues),2))
 M = np.zeros(len(rhoKSValues))
 
