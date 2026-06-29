@@ -75,18 +75,33 @@ for i in range(len(exp)):
     print(f'FDtes_res: {FDtest_res[i]}')
     
     
-plt.figure()
+plt.figure(figsize=(10,4.5))
 plt.subplot(1,2,1)
-plt.loglog(h,FDtest_CL)
-plt.loglog(h,FDtest_CD)
+plt.loglog(h,FDtest_CL, label= r'$C_L$')
+plt.loglog(h,FDtest_CD, label = r'$C_D$')
+
 plt.xlim(max(h), min(h))
+plt.yscale('log')
+
+plt.xlabel('h')
+plt.ylabel('FD test')
 
 plt.grid()
+plt.legend()
+
 plt.subplot(1,2,2)
 plt.loglog(h,FDtest_res)
+
 plt.xlim(max(h), min(h))
+plt.yscale('log')
+
+plt.xlabel('h')
+plt.ylabel('FD test')
 
 plt.grid()
+
+plt.tight_layout()
+
 plt.show()
 # %%
 
