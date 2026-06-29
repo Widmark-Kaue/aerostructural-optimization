@@ -2,11 +2,17 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-import copy
+from copy import deepcopy
+
+from utils import set_aiaa_style
 
 from llt import llt # type: ignore - Código original
 from llt_d import llt_d # type: ignore - Código direto
 from llt_b import llt_b # type: ignore - Código reverso
+
+#%% plot settings
+set_aiaa_style(16)
+
 #%% Inputs
 inputs = dict(
             twist = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
@@ -27,20 +33,61 @@ inputs_seed = dict(
                 )
 
 #%% Finite Diference test
-h = 10**(np.arange(-1,-16,-1))
-inputs1 = copy.copy(inputs)
+exp = np.arange(2,-12,-1,  dtype=float)
+h = 10**(exp)
+inputs1 = deepcopy(inputs)
 
-inputs1['twist'] = inputs['twist']*(1+h)
-inputs1['gama'] = inputs['gama']*(1+h)
+FDtest_CL = np.zeros(len(exp))
+FDtest_CD = np.zeros(len(exp))
+FDtest_res = np.zeros((len(exp), len(inputs['twist']))) # type: ignore
 
-res_llt,CL,CD= llt.llt_main(**inputs)
-res_llt1,CL1,CD1= llt.llt_main(**inputs1)
+# Compute gradient using AD Foward
+_,res_lltd,_,CLd,_,CDd = llt_d.llt_main_d(**inputs,**inputs_seed)
+    
+print(f'CLd: {CLd}')
+print(f'CDd: {CDd}')
+print(f'res_lltd: {res_lltd}')
+print()
+for i in range(len(exp)): 
+    inputs1['twist'] = inputs['twist'] + h[i]*inputs_seed['twistd']
+    inputs1['gama'] = inputs['gama'] + h[i]*inputs_seed['gamad']
 
-res_lltd_FD = (res_llt1-res_llt)/h
-print(res_llt)
-print(res_llt1)
-print(res_lltd_FD)
+    # Compute gradient using FD
+    res_llt,CL,CD= llt.llt_main(**inputs)
+    res_llt1,CL1,CD1= llt.llt_main(**inputs1)
 
+    res_lltd_FD = (res_llt1-res_llt)/h[i]
+    CLd_FD = (CL1-CL)/h[i]
+    CDd_FD = (CD1-CD)/h[i]
+    
+    # Finite Difference test
+    FDtest_CL[i] = 1 - CLd_FD/CLd
+    FDtest_CD[i] = 1 - CDd_FD/CDd
+    FDtest_res[i] =1 - res_lltd_FD/res_lltd
+    
+    print(f'-----------h = {h[i]} ------------')
+    print(f'CLd_FD: {CLd_FD}')
+    print(f'CDd_FD: {CDd_FD}')
+    print(f'res_lltd_FD: {res_lltd_FD}')
+    print()
+    print(f'FDtest_CL: {FDtest_CL[i]}')
+    print(f'FDtest_CD: {FDtest_CD[i]}')
+    print(f'FDtes_res: {FDtest_res[i]}')
+    
+    
+plt.figure()
+plt.subplot(1,2,1)
+plt.semilogx(h,FDtest_CL)
+plt.semilogx(h,FDtest_CD)
+plt.xlim(max(h), min(h))
+
+plt.grid()
+plt.subplot(1,2,2)
+plt.semilogx(h,FDtest_res)
+plt.xlim(max(h), min(h))
+
+plt.grid()
+plt.show()
 # %%
 
 
