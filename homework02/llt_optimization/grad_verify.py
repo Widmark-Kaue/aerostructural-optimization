@@ -61,10 +61,10 @@ for i in range(len(exp)):
     CDd_FD = (CD1-CD)/h[i]
     
     # Finite Difference test
-    FDtest_CL[i] = 1 - CLd_FD/CLd
-    FDtest_CD[i] = 1 - CDd_FD/CDd
-    FDtest_res[i] =1 - res_lltd_FD/res_lltd
-    
+    FDtest_CL[i] = abs(1 - CLd_FD/CLd)
+    FDtest_CD[i] = abs(1 - CDd_FD/CDd)
+    FDtest_res[i] =np.abs(1 - res_lltd_FD/res_lltd
+)    
     print(f'-----------h = {h[i]} ------------')
     print(f'CLd_FD: {CLd_FD}')
     print(f'CDd_FD: {CDd_FD}')
@@ -77,13 +77,13 @@ for i in range(len(exp)):
     
 plt.figure()
 plt.subplot(1,2,1)
-plt.semilogx(h,FDtest_CL)
-plt.semilogx(h,FDtest_CD)
+plt.loglog(h,FDtest_CL)
+plt.loglog(h,FDtest_CD)
 plt.xlim(max(h), min(h))
 
 plt.grid()
 plt.subplot(1,2,2)
-plt.semilogx(h,FDtest_res)
+plt.loglog(h,FDtest_res)
 plt.xlim(max(h), min(h))
 
 plt.grid()
