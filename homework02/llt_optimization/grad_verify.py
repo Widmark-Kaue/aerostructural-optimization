@@ -52,9 +52,11 @@ print(f'CL: {CL_OR}')
 print(f'CD: {CD_OR}')
 
 #%% Finite Diference test
+twistd = np.array([0.3, 0.1, 0.2, 0.4, 0.6, 0.5])
+gamad = np.array([0.2, 0.3, 0.6, 0.4, 0.5, 0.1])
 inputs_seed = dict(
-                twistd = np.array([0.3, 0.1, 0.2, 0.4, 0.6, 0.5]),
-                gamad = np.array([0.2, 0.3, 0.6, 0.4, 0.5, 0.1])
+                twistd = twistd,
+                gamad = gamad
                 )
 exp = np.arange(2,-17,-1,  dtype=float)
 h = 10**(exp)
@@ -171,7 +173,26 @@ input_seed_RAD = dict(
 # Call function
 llt_b.llt_main_b(**inputs, **input_seed_RAD, res_llt = res_llt_OR, cl = CL_OR,cd = CD_OR)
 
-# Dot product
+print(f'twistb: {twistb}')
+print(f'gamab: {gamab}')
 
+# Dot product
+xd = np.concatenate((twistd,gamad))
+xb = np.concatenate((twistb, gamab))
+
+yd = np.concatenate(([CLd,CDd],res_lltd))
+yb = np.concatenate(([clb,cdb],res_lltb))
+
+ 
+dotprod_inputs = np.sum(xd*xb)
+dotprod_outputs = np.sum(yd*yb)
+
+dotprod_test = 1 - dotprod_inputs/dotprod_outputs
+
+print('DP test')
+print('dotprod_inputs:',dotprod_inputs)
+print('dotprod_outputs:',dotprod_outputs)
+print('dotprod_test:',dotprod_test)
+print('')
 
 # %%
