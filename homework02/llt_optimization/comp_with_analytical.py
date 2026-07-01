@@ -67,6 +67,9 @@ for i in range(0,len(lltclass_list)):
     # save optimal twist
     lltclass.twist_opt = result.x
     
+    # Compute optimal CL and gama
+    CL_opt, gama_opt, CD_opt = lltclass.solve_llt(result.x)
+    
     print(f'------------------- {lltclass.nvortices} vortices -------------------')
     print(result)
 
