@@ -117,9 +117,11 @@ plt.savefig(imagdir / f'q1_g.{format}', dpi=dpi, bbox_inches='tight') if savefla
 #%% OPTIMIZATION - ITEM H
 st.save_history = False
 
-rhoKSValues1 = np.arange(1.4,10,0.2)
-rhoKSValues2 = np.arange(10,101)
-rhoKSValues = np.concatenate((rhoKSValues1,rhoKSValues2))
+# rhoKSValues1 = np.arange(1.4,10,0.2)
+# rhoKSValues2 = np.arange(10,101)
+# rhoKSValues = np.concatenate((rhoKSValues1,rhoKSValues2))
+
+rhoKSValues = np.logspace(0.15,2)
 X = np.zeros((len(rhoKSValues),2))
 M = np.zeros(len(rhoKSValues))
 
@@ -150,8 +152,8 @@ fig = plt.figure(figsize=(10,4))
 plt.subplot(1,2,1)
 # plt.plot(1/rhoKSValues,X[:,0]/opt_x_val[0],'ro', label = r'$t_a/t_{a,\text{ref}}$')
 # plt.plot(1/rhoKSValues,X[:,1]/opt_x_val[1],'bo',label = r'$t_b/t_{b,\text{ref}}$')
-plt.plot(1/rhoKSValues,X_mod[:,0],'ro', label = r'$t_a/t_{a,\text{ref}}$')
-plt.plot(1/rhoKSValues,X_mod[:,1],'bo',label = r'$t_b/t_{b,\text{ref}}$')
+plt.semilogx(1/rhoKSValues,X_mod[:,0],'ro', label = r'$t_a/t_{a,\text{ref}}$')
+plt.semilogx(1/rhoKSValues,X_mod[:,1],'bo',label = r'$t_b/t_{b,\text{ref}}$')
 
 plt.xlabel(r'$1/\rho_{KS}$')
 plt.ylabel(r'$\vec{x}/\vec{x}_{\text{ref}}$')
@@ -164,7 +166,7 @@ plt.legend()
 
 plt.subplot(1,2,2)
 # plt.plot(1/rhoKSValues,M/opt_m_val,'ko')
-plt.plot(1/rhoKSValues,M_mod,'ko')
+plt.semilogx(1/rhoKSValues,M_mod,'ko')
 
 plt.xlabel(r'$1/\rho_{KS}$')
 plt.ylabel(r'$m/m_{\text{ref}}$')

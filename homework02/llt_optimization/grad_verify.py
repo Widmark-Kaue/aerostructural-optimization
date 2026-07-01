@@ -171,7 +171,7 @@ input_seed_RAD = dict(
 )
 
 # Call function
-llt_b.llt_main_b(**inputs, **input_seed_RAD, res_llt = res_llt_OR, cl = CL_OR,cd = CD_OR)
+llt_b.llt_main_b(**inputs, **input_seed_RAD, res_llt = res_llt_RAD, cl = cl_RAD,cd = cd_RAD)
 
 print(f'twistb: {twistb}')
 print(f'gamab: {gamab}')
