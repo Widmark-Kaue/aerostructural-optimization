@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 
 from scipy.optimize import root
 
+from lltlib import LiftingLineOpt
+
 from llt import llt # type: ignore - Código original
 from llt_b import llt_b # type: ignore - Código reverso
 
@@ -71,14 +73,14 @@ res,CL,CD = llt.llt_main(gama = gama, **inputs)
 print('Solve physics:')
 print(f'CL = {CL}')
 print(f'CD = {CD}')
-print(f'res = {res}')
+print(f'gama = {gama}')
 
 # %% Solve adjoint equation for CL
 resAdjfun_CL = lambda resb: resAdjfun(resb,gama,'CL')
 psi0 = np.ones_like(gama)
 sol = root(resAdjfun_CL,psi0)
 psiCL = sol.x
-
+print()
 print('Adjoint vars CL:')
 print(f'psiCL = {psiCL}')
 
@@ -93,6 +95,7 @@ resAdjfun_CD = lambda resb: resAdjfun(resb,gama,'CD')
 psi0 = np.ones_like(gama)
 sol = root(resAdjfun_CD,psi0)
 psiCD = sol.x
+print()
 
 print('Adjoint vars CD:')
 print(f'psiCD = {psiCD}')
@@ -103,4 +106,28 @@ print()
 print('Total Derivative CD:')
 print(f'dCD_dtwist = {dCD_dtwist}')
 
-# %%
+# %% Validate llt class
+lltclass = LiftingLineOpt()
+CL,CD, gama = lltclass.solve_llt(inputs['twist']) #type: ignore
+dCL_dtwist_class, psiCL_class = lltclass.grad_llt(inputs['twist'],'CL') #type: ignore
+dCD_dtwist_class, psiCD_class = lltclass.grad_llt(inputs['twist'],'CD') #type: ignore
+
+print()
+print('VALIDATE LLT CLASS:')
+print('Solve physics:')
+print(f'CL = {CL}')
+print(f'CD = {CD}')
+print(f'gama = {gama}')
+
+
+print()
+print('Adjoint vars CL:')
+print(f'psiCL_class = {psiCL_class}')
+print('Total Derivative CL:')
+print(f'dCL_dtwist_class = {dCL_dtwist_class}')
+
+print()
+print('Adjoint vars CD:')
+print(f'psiCD_class = {psiCD_class}')
+print('Total Derivative CD:')
+print(f'dCD_dtwist_class = {dCD_dtwist_class}')

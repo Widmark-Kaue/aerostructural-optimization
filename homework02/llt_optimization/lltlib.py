@@ -8,6 +8,7 @@ from llt_b import llt_b # type: ignore - Código reverso
 
 @dataclass
 class LiftingLineOpt:
+    CL_target:float = 0.5         # [-]
     span:float = 8.0              # [m]
     chord:float = 1.0             # [m]             
     cl0: float = 0.0              # 
@@ -16,8 +17,8 @@ class LiftingLineOpt:
     Vinf: float  =  10            # [m/s]
     rho_air: float = 1.225        # [kg/m^3]             
     save_history:bool = False
-    x_hist:list = field(init=False, default_factory=list)
-    f_hist:list = field(init=False, default_factory=list)
+    _x_hist:list = field(init=False, default_factory=list)
+    _f_hist:list = field(init=False, default_factory=list)
     inputs:dict = field(init=False,default_factory=dict)
     
     
@@ -38,10 +39,60 @@ class LiftingLineOpt:
             rho_air = self.rho_air,
             )
         
+    @property
+    def x_hist(self):
+        return np.array(self._x_hist)
+    
+    @property
+    def f_hist(self):
+        return np.array(self._f_hist)
 
+    def _clean_history(self):
+        self._x_hist = []
+        self._f_hist = []
+    
     def _resfun(self, twist:np.ndarray,gama:np.ndarray):
         res, CL, CD = llt.llt_main(twist=twist,gama =gama, **self.inputs)
         return res
+    
+    def _adjfun(self, twist:np.ndarray,gama:np.ndarray,resb:np.ndarray,func:str):
+        # Initialize output seeds
+        clb = 1
+        cdb = 0
+        if func.lower() == 'cd':
+            clb = 0
+            cdb = 1
+        
+        # Initialize input seeds
+        twistb = np.zeros_like(twist)
+        gamab = np.zeros_like(gama)
+
+        # Initialize output variables 
+        CL = 0
+        CD = 0
+        res = np.zeros_like(resb)
+        
+        # call reverse code
+        llt_b.llt_main_b(
+                        twist = twist, 
+                        twistb = twistb, 
+                        gama = gama,
+                        gamab = gamab,
+                        cl = CL, 
+                        clb =clb, 
+                        cd = CD, 
+                        cdb = cdb,
+                        res_llt = res, 
+                        res_lltb = resb.copy(),
+                         **self.inputs)
+        
+        
+        return twistb, gamab
+    
+    def _resAdjfun(self, twist:np.ndarray,gama:np.ndarray,resb:np.ndarray,func:str):
+        _,  gamab = self._adjfun(twist,gama,resb,func)
+        adj_res = gamab
+        return adj_res
 
     
     def solve_llt(self,twist:np.ndarray):
@@ -50,81 +101,49 @@ class LiftingLineOpt:
         
         # Solve llt
         sol = root(resfun,gama0)  
+        gama = sol.x
         
-        gama =sol.x
+        # Compute coefficients
         _,CL,CD = llt.llt_main(twist=twist,gama=gama,**self.inputs)
         
         return CL, CD, gama
           
     def grad_llt(self, twist:np.ndarray,func:str):
+        # Solve physics
+        _,_,gama = self.solve_llt(twist)
         
-        CL,CD,gama = self.solve_llt(twist)
+        # Solve adjoint equation
+        resAdjfun = lambda resb: self._resAdjfun(twist,gama,resb,func)
+        psi0 = np.ones_like(twist)
+        sol = root(resAdjfun,psi0)
+        psi = sol.x
         
-        res = np.zeros_like(gama)
+        # Compute total derivative
+        dfunc_dtwist,_ = self._adjfun(twist,gama,psi,func)
         
-        # Output seeds
-        resb = np.zeros_like(gama)
-        clb = 1
-        cdb = 0
-        if func.lower == 'cd':
-            clb = 0
-            cdb = 1
+        return dfunc_dtwist, psi
         
-        # Initialize input seeds for derivative accumulation
-        twistb = np.zeros_like(twist)
-        gamab = np.zeros_like(gama)
-        
-        # Call function
-        llt_b.llt_main_b(
-                        twist = twist, twistb = twistb, gama = gama,gamab = gamab,
-                         **self.inputs,
-                        cl = CL, clb =clb, cd = CD, cdb = cdb,res_llt = res, res_lltb = resb)
-        
-    # def objfun(self, x):
-    #     ta,tb = x
-    #     m = 2*np.pi*self.R*self.rho/1e3 *(ta + tb)
-    #     if self.save_history:
-    #         self.x_hist.append(x)
-    #         self.f_hist.append(m)
-    #     return m
     
-    # def objfungrad(self, x):
-    #     cte =  2*np.pi*self.R*self.rho/1e3
-    #     dmdx = cte*np.ones(2)
-    #     return dmdx
+    def objfun(self,twist:np.ndarray):
+        # Solve physics
+        _,CD,_ = self.solve_llt(twist)
+        
+        if self.save_history:
+            self._x_hist.append(twist)
+            self._f_hist.append(CD)
+        return CD
 
-    # def confun(self, x):
-    #     # Solve physics
-    #     K = self._build_stiffness_matrix(x[0],x[1])
-    #     p = self._find_state_vars(K)
-        
-    #     # Compute isolated constraints
-    #     si = self.A@p
-    #     gis = 1 - self.alpha**2 * si**2
-    #     return gis
+    def objfungrad(self,twist:np.ndarray):
+        dCD_dtwist,_ = self.grad_llt(twist,'CD')
+        return dCD_dtwist
     
-    # def confungrad(self, x):
-    #     # Solve physics
-    #     K = self._build_stiffness_matrix(x[0],x[1])
-    #     p = self._find_state_vars(K)
-        
-    #     # Compute si vector
-    #     si = self.A@p
-        
-    #     # Compute partial derivatives
-    #     delsidelp = self.A
-    #     delrdelp = K
-    #     delrdelx = self._build_delrdelx(p)
-        
-    #     dgidx = []
-    #     for i in range(len(si)):
-    #         # Compute partial derivate of g related to state vars (for each constraint)
-    #         delgidelp = -2*self.alpha**2*si[i]*delsidelp[i]
-            
-    #         # Solve adjoint equation for each constraint
-    #         psigis = self._find_adjoint_vars(delrdelp,delgidelp)
-           
-    #         # Total derivative for each constraint
-    #         dgidx.append(psigis.T @ delrdelx)
-        
-    #     return dgidx
+    
+    def confun(self, twist:np.ndarray):
+        # Solve physics
+        CL,_,_ = self.solve_llt(twist)
+        h = CL - self.CL_target
+        return h
+    
+    def confungrad(self, twist:np.ndarray):
+        dCL_dtwist,_ = self.grad_llt(twist,'CL')
+        return dCL_dtwist
