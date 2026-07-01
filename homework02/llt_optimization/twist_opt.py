@@ -109,4 +109,20 @@ plt.grid()
 
 plt.tight_layout()
 plt.savefig(imagdir / f'q2_twist_opt.{format}', dpi=dpi, bbox_inches='tight') if saveflag else None
+# plt.show()
+#%%
+fig = plt.figure(figsize=(6,4))
+
+plt.plot(lltclass6.f_hist,'ko-', label = f'{lltclass6.nvortices} vortices')
+plt.plot(lltclass8.f_hist,'ro-', label = f'{lltclass8.nvortices} vortices')
+plt.plot(lltclass16.f_hist,'bo-', label = f'{lltclass16.nvortices} vortices')
+
+plt.xlabel('nfev')
+plt.ylabel(r'$C_D$')
+
+plt.legend()
+plt.grid()
+plt.tight_layout()
+plt.savefig(imagdir / f'q2_twist_opt_{lltclass6.nvortices}_{lltclass8.nvortices}_{lltclass16.nvortices}.{format}', dpi=dpi, bbox_inches='tight') if saveflag else None
+
 plt.show()
