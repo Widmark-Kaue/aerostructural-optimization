@@ -21,6 +21,7 @@ class LiftingLineOpt:
     _x_hist:list = field(init=False, default_factory=list)
     _f_hist:list = field(init=False, default_factory=list)
     inputs:dict = field(init=False,default_factory=dict)
+    twist_opt:np.ndarray = field(init=False,default_factory=lambda: np.empty(1))
     
     
     def __post_init__(self):
