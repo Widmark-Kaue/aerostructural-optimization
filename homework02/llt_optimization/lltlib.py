@@ -8,6 +8,7 @@ from llt_b import llt_b # type: ignore - Código reverso
 
 @dataclass
 class LiftingLineOpt:
+    nvortices:int
     CL_target:float = 0.5         # [-]
     span:float = 8.0              # [m]
     chord:float = 1.0             # [m]             
@@ -47,10 +48,6 @@ class LiftingLineOpt:
     def f_hist(self):
         return np.array(self._f_hist)
 
-    def _clean_history(self):
-        self._x_hist = []
-        self._f_hist = []
-    
     def _resfun(self, twist:np.ndarray,gama:np.ndarray):
         res, CL, CD = llt.llt_main(twist=twist,gama =gama, **self.inputs)
         return res
@@ -94,6 +91,10 @@ class LiftingLineOpt:
         adj_res = gamab
         return adj_res
 
+    def clean_history(self):
+        self._x_hist = []
+        self._f_hist = []
+    
     
     def solve_llt(self,twist:np.ndarray):
         resfun = lambda gama: self._resfun(twist,gama)

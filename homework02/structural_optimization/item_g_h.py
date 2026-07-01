@@ -87,14 +87,14 @@ if saveHistory:
 gis = st.confunKS(opt_x_val) 
 
 #%% Plot
-gen = np.arange(1,len(f_hist)+1)
+nfev = np.arange(1,len(f_hist)+1)
 
 fig = plt.figure(figsize=(10,4))
 plt.subplot(1,2,1)
-plt.plot(gen,x_hist[:,0],'r', label = r'$t_a$')
-plt.plot(gen,x_hist[:,1],'b',label = r'$t_b$')
+plt.plot(nfev,x_hist[:,0],'r', label = r'$t_a$')
+plt.plot(nfev,x_hist[:,1],'b',label = r'$t_b$')
 
-plt.xlabel('Gen')
+plt.xlabel('nfev')
 plt.ylabel(r'$\vec{x}$ [mm]')
 plt.title('(a)')
 
@@ -103,9 +103,9 @@ plt.grid()
 plt.legend()
 
 plt.subplot(1,2,2)
-plt.plot(gen,f_hist,'k')
+plt.plot(nfev,f_hist,'k')
 
-plt.xlabel('Gen')
+plt.xlabel('nfev')
 plt.ylabel(r'$m$ [kg]')
 plt.title('(b)')
 plt.grid()

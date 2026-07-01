@@ -107,7 +107,7 @@ print('Total Derivative CD:')
 print(f'dCD_dtwist = {dCD_dtwist}')
 
 # %% Validate llt class
-lltclass = LiftingLineOpt()
+lltclass = LiftingLineOpt(nvortices=6)
 CL,CD, gama = lltclass.solve_llt(inputs['twist']) #type: ignore
 dCL_dtwist_class, psiCL_class = lltclass.grad_llt(inputs['twist'],'CL') #type: ignore
 dCD_dtwist_class, psiCD_class = lltclass.grad_llt(inputs['twist'],'CD') #type: ignore
