@@ -15,8 +15,6 @@ set_aiaa_style(16)
 dpi = 600
 format = 'pdf'
 saveflag = True
-#%% Data settings
-saveHistory = True
 
 #%% Path settings
 rootdir = Path('.')
@@ -34,6 +32,8 @@ print("Images will be saved in:", imagdir)
 
 
 #%% Create LiftingLineOpt object
+saveHistory = True
+
 lltclass6 = LiftingLineOpt(nvortices=6, save_history=saveHistory)
 lltclass8 = LiftingLineOpt(nvortices=8, save_history=saveHistory)
 lltclass16 = LiftingLineOpt(nvortices=16, save_history=saveHistory)
