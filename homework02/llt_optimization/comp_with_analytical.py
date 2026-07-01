@@ -73,6 +73,6 @@ for i in range(0,len(lltclass_list)):
     print('Optimal values:')
     print(f'twist = {np.round(np.rad2deg(result.x), 3)} [deg]')
     print(f'CD = {result.fun}')
-    print(f'CL = {lltclass.solve_llt(result.x)[0]}')
+    print(f'CL = {CL_opt}')
 
 #%% Compare results
