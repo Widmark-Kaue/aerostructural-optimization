@@ -91,7 +91,7 @@ fig = plt.figure(figsize=(10,4))
 plt.subplot(1,2,1)
 plt.plot(nfev,np.rad2deg(twist_hist),'-o')
 
-plt.xlabel('nfev')
+plt.xlabel(r'$N_{\text{fev}}$')
 plt.ylabel(r'$\vec{\tau}$ [deg]')
 plt.title('(a)')
 
@@ -102,7 +102,7 @@ plt.legend([fr'$\tau_{i}$' for i in range(1,lltclass6.nvortices+1)],ncols = 2)
 plt.subplot(1,2,2)
 plt.plot(nfev,CD_hist,'ko-')
 
-plt.xlabel('nfev')
+plt.xlabel(r'$N_{\text{fev}}$')
 plt.ylabel(r'$C_D$')
 plt.title('(b)')
 plt.grid()
@@ -117,7 +117,7 @@ plt.plot(lltclass6.f_hist,'ko-', label = f'{lltclass6.nvortices} vortices')
 plt.plot(lltclass8.f_hist,'ro-', label = f'{lltclass8.nvortices} vortices')
 plt.plot(lltclass16.f_hist,'bo-', label = f'{lltclass16.nvortices} vortices')
 
-plt.xlabel('nfev')
+plt.xlabel(r'$N_{\text{fev}}$')
 plt.ylabel(r'$C_D$')
 
 plt.legend()

@@ -94,7 +94,7 @@ plt.subplot(1,2,1)
 plt.plot(nfev,x_hist[:,0],'r', label = r'$t_a$')
 plt.plot(nfev,x_hist[:,1],'b',label = r'$t_b$')
 
-plt.xlabel('nfev')
+plt.xlabel(r'$N_{\text{fev}}$')
 plt.ylabel(r'$\vec{x}$ [mm]')
 plt.title('(a)')
 
@@ -105,7 +105,7 @@ plt.legend()
 plt.subplot(1,2,2)
 plt.plot(nfev,f_hist,'k')
 
-plt.xlabel('nfev')
+plt.xlabel(r'$N_{\text{fev}}$')
 plt.ylabel(r'$m$ [kg]')
 plt.title('(b)')
 plt.grid()
