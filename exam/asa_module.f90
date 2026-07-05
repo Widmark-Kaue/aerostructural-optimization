@@ -226,6 +226,74 @@ contains
     ! ADD YOUR CODE HERE
     ! ==================
 
+    ! ==================
+    ! STEP 1: Build the FEM nodes coordinates 
+    ! ==================
+
+    do ii = 1, n_nodes
+      Xfem(1,ii) = 0.0
+      Xfem(2,ii) = -span/2.0 +(ii-1)*span/real(n_panels)
+      Xfem(3,ii) = 0.0
+    end do
+
+    ! ==================
+    ! STEP 2: Call modules
+    ! ==================
+
+    ! Transfer the displacements from the FEM model to the LLT model
+    call transfer_disps(n_nodes, Xfem, d, Xllt)
+
+    ! Call the LLT solver to compute the aerodynamic loads
+    call llt_main(n_panels, Xllt, Gama, twist, chords, cl0, cla, Vinf, rhoAir, & ! input variables
+                  resllt, Sref, CL, CD, Lift, Drag, Loads) ! output variables
+
+    ! Transfer the aerodynamic loads from the LLT model to the FEM model
+    call transfer_forces(n_nodes, Xfem, Loads, f)
+
+    ! Call the FEM solver to compute the structural response
+    call fem_main(n_panels, n_cons, Xfem, r, t, f, d,E,rhoMat, sigmaY,pKS, conIDs, & ! input variables
+                  resfem, structMass, margins, KSmargin) ! output variables
+
+    ! ==================
+    ! STEP 3: Convert margins by the loadfactor
+    ! ==================
+                
+    margins = loadfactor*margins + 1 - loadfactor
+    
+    ! ==================
+    ! STEP 4: Convert KSmargins by the loadfactor
+    ! ==================
+  
+    KSmargin = loadfactor*KSmargin + 1 - loadfactor
+
+    ! ==================
+    ! STEP 5: Compute magnitude of Vinf
+    ! ==================
+    
+    Vinfm2 = Vinf(1)**2 + Vinf(2)**2 + Vinf(3)**2
+    
+    ! ==================
+    ! STEP 6: Compute total drag of the wing
+    ! ==================
+    
+    Drag = Drag + rhoAir*Vinfm2*CD0*Sref/2.0
+    
+    ! ==================
+    ! STEP 7: Compute Fuel Burn
+    ! ==================
+    
+    FB = (structMass + fixedMass)*g*(exp(endurance *TSFC/(Lift/Drag)) - 1)
+    
+    ! ==================
+    ! STEP 8: Compute Total weight
+    ! ==================
+    Weight = (structMass + fixedMass)*g + FB
+    
+    ! ==================
+    ! STEP 9: Compute Lift excess
+    ! ==================
+    liftExcess = Lift/Weight -1 
+    
 
   end subroutine asa_main
 
