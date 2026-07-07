@@ -86,23 +86,27 @@ outLabel = ['resllt','resfem','liftexcess','margins','ksmargin','fb','weight','s
 outLatex = ['r_{llt}', 'r_{fem}', r'\Delta L','m','m_{KS}','FB','W']
 outLatex = dict(zip(outLabel,  outLatex))
 
+# names for output seeds Foward AD
+outLabel_d = [f'{outLabel[i]}d' for i in range(7)]
+
+# names for output seeds Reverse AD
+outLabel_b = [f'{outLabel[i]}b' for i in range(7)]
+
 #%% Seeds Foward method
 # Input seeds
-input_d = dict(
+inp_d = dict(
     twistd =  np.array([0.3, 0.1, 0.2, 0.4]),
     gamad = np.array([0.2, 0.3, 0.6, 0.4]),
     dd = np.ones_like(INPUTS['d'])*0.02,
     td = np.ones_like(INPUTS['t'])*0.1 
 )
-# Initizalize names for output seeds
-outLabel_d = [f'{outLabel[i]}d' for i in range(7)]
 
 # Call Foward AD method
 outLabel_full = list(chain.from_iterable(zip(outLabel[:7], outLabel_d))) + outLabel[7:]
-out_d = asa_d.asa_main_d(**INPUTS, **input_d)
+out_d = asa_d.asa_main_d(**INPUTS, **inp_d)
 out_d = dict(zip(outLabel_full,out_d))
-out_d_slice = {kd: out_d[kd] for kd in outLabel_d}
-pprint(out_d_slice)
+out_d= {kd: out_d[kd] for kd in outLabel_d}
+pprint(out_d)
 # %% Finite Diferences Test
 
 # Compute values for non-pertubation case
@@ -122,9 +126,9 @@ FDtest = {kd:[] for kd in outLabel_d}
 # For loop on h
 for i in range(len(exp)):
     # Apply pertubation on INPUT variables
-    for kd in list(input_d.keys()):
+    for kd in list(inp_d.keys()):
         k = kd[:-1] # label without d
-        INPUTS_cp[k] = INPUTS[k] + h[i] * input_d[kd]
+        INPUTS_cp[k] = INPUTS[k] + h[i] * inp_d[kd]
     
     # Compute pertubation values
     outFD = asa.asa_main(**INPUTS_cp)
@@ -139,7 +143,7 @@ for i in range(len(exp)):
         
         print(f'{kd}: {FDtest[kd][-1]}')
 
-#%% plot
+#%% plot FDtest
 plt.close()
 plt.figure(figsize = (13,9))
 hchoose = 10**(-8)
@@ -182,10 +186,67 @@ for kd in outLabel_d:
         
         
 plt.tight_layout()
-
 plt.savefig(imagdir / f'FDtest.{format}', dpi=dpi, bbox_inches='tight') if saveflag else None
+# plt.show()
 
-plt.show()
+#%% Seeds for reverse method
+rng = np.random.seed(42)
+# Original outputs
+out_reverse = {k: np.zeros_like(out0[k]) for k in outLabel}
+print()
+print('out_revers:')
+pprint(out_reverse)
+
+# Output seeds
+out_b = []
+for kb in outLabel_b:
+    var = np.array(out_reverse[kb[:-1]])
+    ndim = var.ndim
+    
+    if ndim == 0:
+        out_b.append(np.random.rand(1)[0])
+    else:
+        out_b.append(np.random.rand(len(var)))
+
+out_b = dict(zip(outLabel_b,out_b))
+out_b_copy = deepcopy(out_b) # Make copies of the output seeds
 
 
-# %%
+print()
+print('out_b:')
+pprint(out_b)
+    
+# Initialize input seeds for derivative accumulation
+inp_b = dict(
+    twistb = np.zeros_like(INPUTS['twist']),
+    gamab = np.zeros_like(INPUTS['gama']),
+    db = np.zeros_like(INPUTS['d']),
+    tb = np.zeros_like(INPUTS['t'])
+)
+print()
+print('Before call reverse conde - inp_b:')
+pprint(inp_b)
+
+# Call reverse code
+asa_b.asa_main_b(**INPUTS,**inp_b,**out_reverse,**out_b_copy)
+
+print()
+print('After call reverse conde - inp_b:')
+pprint(inp_b)
+# %% Dot product test
+xd = np.concatenate(tuple(inp_d[kd] for kd in inp_d.keys()))
+xb = np.concatenate(tuple(inp_b[kb] for kb in inp_b.keys()))
+
+yd = np.concatenate(tuple(np.array(out_d[kd], ndmin = 1) for kd in out_d.keys()))
+yb = np.concatenate(tuple(np.array(out_b[kb], ndmin = 1) for kb in out_b.keys()))
+
+dotprod_inputs = np.sum(xd*xb)
+dotprod_outputs = np.sum(yd*yb)
+
+dotprod_test = 1 - dotprod_inputs/dotprod_outputs
+print()
+print('DP test')
+print('dotprod_inputs:',dotprod_inputs)
+print('dotprod_outputs:',dotprod_outputs)
+print('dotprod_test:',dotprod_test)
+print('')
