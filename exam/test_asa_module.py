@@ -44,12 +44,13 @@ oper = dict(
     tsfc = 0.5/3600.0,                                              # [1/s]
     loadfactor = 3.0*1.5
 )
+#%% Outputs
+outname = ['resllt','resfem','liftexcess','margins','ksmargin','fb','weight','sref','cl']
 
 # %%Call function
-outputs_name = ['resllt','resfem','liftexcess','margins','ksmargin','fb','weight','sref','cl']
 output = asa.asa_main(**geo, **aero,**struct,**oper)
 
-outdic =dict(zip(outputs_name,output))
+outdic =dict(zip(outname,output))
 
 keys = list(outdic.keys())
 
