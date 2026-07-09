@@ -206,12 +206,7 @@ class ASAOptimization:
         asa_b.asa_main_b(**inputs_b)
         
         # Return the computed input gradients
-        return {
-            'gamab': inputs_b['gamab'],
-            'twistb': inputs_b['twistb'],
-            'tb': inputs_b['tb'],
-            'db': inputs_b['db']
-        }
+        return inp_b
         
     
         
