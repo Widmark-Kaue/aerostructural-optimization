@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from asa_module import asa_module as asa # type:ignore
 from asa_module_d import asa_module_d as asa_d # type:ignore
 from asa_module_b import asa_module_b as asa_b # type:ignore
+from asalib import ASAOptimization
 
 from pprint import pprint
 from itertools import chain
@@ -250,3 +251,22 @@ print('dotprod_inputs:',dotprod_inputs)
 print('dotprod_outputs:',dotprod_outputs)
 print('dotprod_test:',dotprod_test)
 print('')
+
+# %% Call reverse method via ASAOptimization wrapper to validate it
+opt = ASAOptimization(npanels=len(INPUTS['gama'])) # type: ignore
+
+grad_wrapper = opt._run_asa_b(
+    gama=INPUTS['gama'], # type: ignore
+    twist=INPUTS['twist'], # type: ignore
+    t=INPUTS['t'], # type: ignore
+    d=INPUTS['d'], # type: ignore
+    output_seeds=out_b
+)
+
+print('ASA REVERSE CLASS VALIDATION:')
+print(30*'-')
+for key in ['gamab', 'twistb', 'tb', 'db']:
+    match = np.allclose(grad_wrapper[key], inp_b[key])
+    print(f'{key:<8}: Class = {grad_wrapper[key]}')
+    print(f'{key:<8}: Call direct  = {inp_b[key]}')
+    print(f'Match {key:<6}: {match}\n')

@@ -1,5 +1,6 @@
 #%% libs
 import numpy as np
+from asalib import ASAOptimization
 
 from asa_module import asa_module as asa # type: ignore
 
@@ -58,4 +59,14 @@ print('ASA MAIN TEST:')
 for key in keys:
     print(f'{key} = {outdic[key]}\n')
 
-# %%
+# %% Validation of class
+asaObj = ASAOptimization(4)
+out = asaObj._run_asa(gama = aero['gama'], twist=aero['twist'], t=struct['t'], d = struct['d']) # type: ignore
+
+print('ASA CLASS VALIDATION:')
+print(30*'-')
+for key in list(out.keys()):
+    match = np.allclose(out[key], outdic[key])
+    print(f'{key:<12}: Class = {out[key]}')
+    print(f'{key:<12}: Call direct  = {outdic[key]}')
+    print(f'Match {key:<10}: {match}\n')
