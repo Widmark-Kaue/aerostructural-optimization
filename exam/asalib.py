@@ -1,10 +1,12 @@
 #%%
 import numpy as np
+from scipy.optimize import root
 
-from typing import Optional,Union
-from itertools import chain
 from copy import deepcopy
+from itertools import chain
+from typing import Union
 from dataclasses import dataclass, field
+
 
 from asa_module import asa_module as asa # type:ignore
 from asa_module_d import asa_module_d as asa_d # type:ignore
@@ -51,6 +53,15 @@ class ASAOptimization:
     def __post_init__(self):
         self._build_input_dict()
         self._build_outlabel_lists()
+        
+    @property
+    def x_hist(self):
+            return np.array(self._x_hist)
+        
+    @property
+    def f_hist(self):
+        return np.array(self._f_hist)
+
     
     def _build_input_dict(self):
         # Build vectors
@@ -208,5 +219,11 @@ class ASAOptimization:
         # Return the computed input gradients
         return inp_b
         
-    
+    def _resfunc(self, twist:np.ndarray,t:np.ndarray,stateVars:np.ndarray):
+        Gama = stateVars[:self.npanels]/100
+        d = stateVars[self.npanels:]/0.1
+        
+        out = self._run_asa(twist=twist,gama=Gama,t =t, d =d)
+        res = np.hstack([out['resllt'], out['resfem']])
+        return res
         
