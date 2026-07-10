@@ -246,7 +246,8 @@ class ASAOptimization:
         resfemb = resb[self.npanels:]
         out_b = [reslltb,resfemb] + [0]*5
         output_seeds = dict(zip(self.outLabel_b, out_b))
-        output_seeds[func.lower()] = 1
+        output_seeds['marginsb'] = np.zeros(2*self.npanels,dtype=float)
+        output_seeds[f'{func.lower()}b'] = 1
         
         # Call reverse code (Compute input seeds)
         input_seeds = self._run_asa_b(twist=twist,gama=gama,t=t,d=d, output_seeds=output_seeds)

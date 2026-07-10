@@ -25,6 +25,7 @@ d0 =  np.array([0.001,0.001,0.001,0.001,0.001,0.001,0.001,0.001,0.001,0.001])
 stateVars0 = np.hstack([gama0,d0])
 print(stateVars0)
 sol = root(resfunc,  stateVars0)
+print('SOLVE  PHYSICS:')
 print(sol)
 
 gama = sol.x[:asaObj.npanels]/100
@@ -43,9 +44,25 @@ print(f'Match d: {match}\n')
 
 #%% 5.5 Solve Adjoint problem
 reslltb = np.ones_like(twist)*1e2
-resfemb = np.ones_like(t)
+resfemb = np.ones_like(d)
 resb0 = np.hstack([reslltb, resfemb])
 
 resAdjfunc = lambda resb: asaObj._resAdjfunc(designVars, stateVars,resb,'ksmargin')
+# resAdjfunc(resb0)
+print('SOLVE ADJOINT PROBLEM')
+sol = root(resAdjfunc, resb0)
+print(sol)
 
+psi_ksmargin = sol.x
+psi_A = psi_ksmargin[:asaObj.npanels]
+psi_S = psi_ksmargin[asaObj.npanels:]
+print('Adjoint vars:')
+print(f'psi_A = {psi_A}')
+print(f'psi_S = {psi_S}')
 
+_,dKSmargin_dx = asaObj._adjfunc(designVars,stateVars,psi_ksmargin, 'ksmargin')
+dKSmargin_dtwist = dKSmargin_dx[:asaObj.npanels]
+dKSmargin_dt = dKSmargin_dx[asaObj.npanels:]
+print('Total derivatives')
+print(f'dKSmargin_dtwist = {dKSmargin_dtwist}')
+print(f'dKSmargin_dt = {dKSmargin_dt}')
