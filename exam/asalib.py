@@ -227,8 +227,8 @@ class ASAOptimization:
         t = desVars[self.npanels:]
         
         #Get state vars
-        gama = stateVars[:self.npanels]/100
-        d = stateVars[self.npanels:]/0.1
+        gama = stateVars[:self.npanels]/0.1
+        d = stateVars[self.npanels:]/100.0
         
         out = self._run_asa(twist=twist,gama=gama,t =t, d =d)
         res = np.hstack([out['resllt'], out['resfem']])
@@ -277,14 +277,16 @@ class ASAOptimization:
         
         # Solve physics
         resfunc = lambda stateVars: self._resfunc(desVars, stateVars)
-        gama0 = np.array([80.0,80.0,80.0,80.0])
+        # Use professor's default initial guesses (gama = 80.0, d = 0.001)
+        gama0 = np.array([80.0, 80.0, 80.0, 80.0])
         d0 =  np.array([0.001,0.001,0.001,0.001,0.001,0.001,0.001,0.001,0.001,0.001])
-        stateVars0 = np.hstack([gama0,d0])
-        sol = root(resfunc,stateVars0)
+        # Scale the initial guess for the solver's normalized variables
+        stateVars0 = np.hstack([gama0 * 0.1, d0 * 100.0])
+        sol = root(resfunc, stateVars0, options={'xtol': 1e-6})
         
-        # Split state vars
-        gama = sol.x[:self.npanels]/100
-        d =sol.x[self.npanels:]/0.1
+        # Split state vars (applying same scaling: gama = stateVars/0.1, d = stateVars/100)
+        gama = sol.x[:self.npanels]/0.1
+        d = sol.x[self.npanels:]/100.0
         
         # Call original code
         out = self._run_asa(twist=twist,gama= gama, t = t, d =d)
