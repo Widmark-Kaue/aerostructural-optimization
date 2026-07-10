@@ -1,3 +1,8 @@
 {
     "fortran.fortls.disabled": true,
+    "files.watcherExclude": {
+        "**/*.so": true,
+        "**/__pycache__": true,
+        "**/.git": true
+    }
 }
