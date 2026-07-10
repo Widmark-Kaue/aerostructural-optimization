@@ -151,7 +151,7 @@ class ASAOptimization:
         # Map the outputs to their corresponding labels
         return dict(zip(self.outLabel, outputs))
 
-    def _run_asa_b(self, gama: np.ndarray, twist: np.ndarray, t: np.ndarray, d: np.ndarray, 
+    def _run_asa_b(self, twist: np.ndarray, gama: np.ndarray, t: np.ndarray, d: np.ndarray, 
                   output_seeds: dict) -> dict:
         """
         Runs the reverse AD code (asa_main_b) to compute gradients.
@@ -219,11 +219,47 @@ class ASAOptimization:
         # Return the computed input gradients
         return inp_b
         
-    def _resfunc(self, twist:np.ndarray,t:np.ndarray,stateVars:np.ndarray):
-        Gama = stateVars[:self.npanels]/100
+    def _resfunc(self, designVars:np.ndarray,stateVars:np.ndarray):
+        #Get design vars
+        twist = designVars[:self.npanels]
+        t = designVars[self.npanels:]
+        
+        #Get state vars
+        gama = stateVars[:self.npanels]/100
         d = stateVars[self.npanels:]/0.1
         
-        out = self._run_asa(twist=twist,gama=Gama,t =t, d =d)
+        out = self._run_asa(twist=twist,gama=gama,t =t, d =d)
         res = np.hstack([out['resllt'], out['resfem']])
         return res
+    
+    def _adjfunc(self, designVars:np.ndarray, stateVars:np.ndarray,resb:np.ndarray, func:str):
+        #Get design vars
+        twist = designVars[:self.npanels]
+        t = designVars[self.npanels:]
+        
+        #Get state vars
+        gama = stateVars[:self.npanels]
+        d = stateVars[self.npanels:]
+        
+        #Initialize output seeds
+        reslltb = resb[:self.npanels]
+        resfemb = resb[self.npanels:]
+        out_b = [reslltb,resfemb] + [0]*5
+        output_seeds = dict(zip(self.outLabel_b, out_b))
+        output_seeds[func.lower()] = 1
+        
+        # Call reverse code (Compute input seeds)
+        input_seeds = self._run_asa_b(twist=twist,gama=gama,t=t,d=d, output_seeds=output_seeds)
+        
+        stateVarsb = np.hstack([input_seeds['gamab'], input_seeds['db']])
+        designVarsb = np.hstack([input_seeds['twistb'], input_seeds['tb']])
+        return stateVarsb, designVarsb
+            
+    def _resAdjfunc(self,designVars:np.ndarray, stateVars:np.ndarray, resb:np.ndarray, func:str):
+        stateVarsb,_ = self._adjfunc(designVars,stateVars, resb,func)
+        adj_res = stateVarsb
+        return adj_res
+       
+        
+        
         
