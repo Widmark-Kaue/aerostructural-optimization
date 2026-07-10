@@ -54,6 +54,7 @@ class ASAOptimization:
         self._build_input_dict()
         self._build_outlabel_lists()
         
+    #### Properties
     @property
     def x_hist(self):
             return np.array(self._x_hist)
@@ -62,6 +63,7 @@ class ASAOptimization:
     def f_hist(self):
         return np.array(self._f_hist)
 
+    #### Hidden functions
     
     def _build_input_dict(self):
         # Build vectors
@@ -114,7 +116,7 @@ class ASAOptimization:
         # names for output seeds Reverse AD
         self.outLabel_b = [f'{self.outLabel[i]}b' for i in range(7)]
 
-    def _run_asa(self, gama: np.ndarray, twist: np.ndarray, t: np.ndarray, d: np.ndarray) -> dict:
+    def _run_asa(self, twist: np.ndarray, gama: np.ndarray, t: np.ndarray, d: np.ndarray) -> dict:
         """
         Runs the original code (asa_main) and returns the output variables mapped to a dictionary.
         
@@ -219,10 +221,10 @@ class ASAOptimization:
         # Return the computed input gradients
         return inp_b
         
-    def _resfunc(self, designVars:np.ndarray,stateVars:np.ndarray):
+    def _resfunc(self, desVars:np.ndarray,stateVars:np.ndarray):
         #Get design vars
-        twist = designVars[:self.npanels]
-        t = designVars[self.npanels:]
+        twist = desVars[:self.npanels]
+        t = desVars[self.npanels:]
         
         #Get state vars
         gama = stateVars[:self.npanels]/100
@@ -232,10 +234,10 @@ class ASAOptimization:
         res = np.hstack([out['resllt'], out['resfem']])
         return res
     
-    def _adjfunc(self, designVars:np.ndarray, stateVars:np.ndarray,resb:np.ndarray, func:str):
+    def _adjfunc(self, desVars:np.ndarray, stateVars:np.ndarray,resb:np.ndarray, func:str):
         #Get design vars
-        twist = designVars[:self.npanels]
-        t = designVars[self.npanels:]
+        twist = desVars[:self.npanels]
+        t = desVars[self.npanels:]
         
         #Get state vars
         gama = stateVars[:self.npanels]
@@ -247,19 +249,48 @@ class ASAOptimization:
         out_b = [reslltb,resfemb] + [0]*5
         output_seeds = dict(zip(self.outLabel_b, out_b))
         output_seeds['marginsb'] = np.zeros(2*self.npanels,dtype=float)
-        output_seeds[f'{func.lower()}b'] = 1
+        output_seeds[f'{func.lower()}b'] = 1 # activate interest function
         
         # Call reverse code (Compute input seeds)
         input_seeds = self._run_asa_b(twist=twist,gama=gama,t=t,d=d, output_seeds=output_seeds)
         
         stateVarsb = np.hstack([input_seeds['gamab'], input_seeds['db']])
-        designVarsb = np.hstack([input_seeds['twistb'], input_seeds['tb']])
-        return stateVarsb, designVarsb
+        desVarsb = np.hstack([input_seeds['twistb'], input_seeds['tb']])
+        return stateVarsb, desVarsb
             
-    def _resAdjfunc(self,designVars:np.ndarray, stateVars:np.ndarray, resb:np.ndarray, func:str):
-        stateVarsb,_ = self._adjfunc(designVars,stateVars, resb,func)
+    def _resAdjfunc(self,desVars:np.ndarray, stateVars:np.ndarray, resb:np.ndarray, func:str):
+        stateVarsb,_ = self._adjfunc(desVars,stateVars, resb,func)
         adj_res = stateVarsb
         return adj_res
+    
+    #### Public functions
+    
+    def clean_history(self):
+        self._x_hist = []
+        self._f_hist = []
+    
+    def solve_asa(self,  desVars:np.ndarray):
+        # Design variables
+        desVars[self.npanels:] =desVars[self.npanels:]/100
+        twist = desVars[:self.npanels]
+        t = desVars[self.npanels:]
+        
+        # Solve physics
+        resfunc = lambda stateVars: self._resfunc(desVars, stateVars)
+        gama0 = np.array([80.0,80.0,80.0,80.0])
+        d0 =  np.array([0.001,0.001,0.001,0.001,0.001,0.001,0.001,0.001,0.001,0.001])
+        stateVars0 = np.hstack([gama0,d0])
+        sol = root(resfunc,stateVars0)
+        
+        # Split state vars
+        gama = sol.x[:self.npanels]/100
+        d =sol.x[self.npanels:]/0.1
+        
+        # Call original code
+        out = self._run_asa(twist=twist,gama= gama, t = t, d =d)
+        
+        return out
+    
        
         
         
