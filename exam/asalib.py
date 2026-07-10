@@ -281,7 +281,7 @@ class ASAOptimization:
         gama0 = np.array([80.0, 80.0, 80.0, 80.0])
         d0 =  np.array([0.001,0.001,0.001,0.001,0.001,0.001,0.001,0.001,0.001,0.001])
         # Scale the initial guess for the solver's normalized variables
-        stateVars0 = np.hstack([gama0 * 0.1, d0 * 100.0])
+        stateVars0 = np.hstack([gama0, d0])
         sol = root(resfunc, stateVars0, options={'xtol': 1e-6})
         
         # Split state vars (applying same scaling: gama = stateVars/0.1, d = stateVars/100)
