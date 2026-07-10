@@ -33,7 +33,6 @@ d0 =  np.array([0.001,0.001,0.001,0.001,0.001,0.001,0.001,0.001,0.001,0.001])
 stateVars0 = np.hstack([gama0, d0])
 print(stateVars0)
 sol = root(resfunc,  stateVars0, options={'xtol': 1e-6})
-# sol = root(resfunc,  stateVars0)
 print('SOLVE  PHYSICS:')
 print(sol)
 
