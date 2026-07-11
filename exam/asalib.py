@@ -3,20 +3,20 @@ import numpy as np
 from scipy.optimize import root
 
 from copy import deepcopy
-from itertools import chain
-from typing import Union
+# from itertools import chain
+from typing import Union, Literal
 from dataclasses import dataclass, field
 
 
-from asa_module import asa_module as asa # type:ignore
-from asa_module_d import asa_module_d as asa_d # type:ignore
-from asa_module_b import asa_module_b as asa_b # type:ignore
+from asa_module import asa_module as asa 
+from asa_module_b import asa_module_b as asa_b
 #%%
 @dataclass
 class ASAOptimization:
     # Numeric parameters
     npanels: int                                                     # [-]
     pKS: float = 200.0                                               # [-]
+    saveHistory:bool = False
     
     # Geometric parameters
     span: float = 8.0                                                # [m]
@@ -41,11 +41,11 @@ class ASAOptimization:
     g: float = 9.8                                                   # [m/s^2]
     endurance: float = 4.0 * 60.0 * 60.0                             # [s]
     TSFC: float = 0.5 / 3600.0                                       # [1/s]
-    loadFactor: float = 3.0 * 1.5                                    # [-]
+    loadFactor: float = 3.0 * 1.5                             # [-]
 
     # Utils Dictionary and lists
-    outLabel: list = field(init=False, default_factory=list)
-    outLabel_b: list = field(init=False, default_factory=list)
+    _outLabel: list = field(init=False, default_factory=list)
+    _outLabel_b: list = field(init=False, default_factory=list)
     _INPUTS: dict = field(init=False, default_factory=dict)
     _x_hist: list = field(init=False, default_factory=list)
     _f_hist: list = field(init=False, default_factory=list)
@@ -112,9 +112,9 @@ class ASAOptimization:
         self._INPUTS = geo | aero | struct | oper | num
         
     def _build_outlabel_lists(self):
-        self.outLabel = ['resllt', 'resfem', 'liftexcess', 'margins', 'ksmargin', 'fb', 'weight', 'sref', 'cl']
+        self._outLabel = ['resllt', 'resfem', 'liftexcess', 'margins', 'ksmargin', 'fb', 'weight', 'sref', 'cl']
         # names for output seeds Reverse AD
-        self.outLabel_b = [f'{self.outLabel[i]}b' for i in range(7)]
+        self._outLabel_b = [f'{self._outLabel[i]}b' for i in range(7)]
 
     def _run_asa(self, twist: np.ndarray, gama: np.ndarray, t: np.ndarray, d: np.ndarray) -> dict:
         """
@@ -122,10 +122,10 @@ class ASAOptimization:
         
         Parameters:
         -----------
-        gama : np.ndarray
-            Circulation distribution.
         twist : np.ndarray
             Twist distribution.
+        gama : np.ndarray
+            Circulation distribution.
         t : np.ndarray
             Thickness distribution.
         d : np.ndarray
@@ -151,7 +151,7 @@ class ASAOptimization:
         outputs = asa.asa_main(**inputs)
         
         # Map the outputs to their corresponding labels
-        return dict(zip(self.outLabel, outputs))
+        return dict(zip(self._outLabel, outputs))
 
     def _run_asa_b(self, twist: np.ndarray, gama: np.ndarray, t: np.ndarray, d: np.ndarray, 
                   output_seeds: dict) -> dict:
@@ -247,7 +247,7 @@ class ASAOptimization:
         reslltb = resb[:self.npanels]
         resfemb = resb[self.npanels:]
         out_b = [reslltb,resfemb] + [0]*5
-        output_seeds = dict(zip(self.outLabel_b, out_b))
+        output_seeds = dict(zip(self._outLabel_b, out_b))
         output_seeds['marginsb'] = np.zeros(2*self.npanels,dtype=float)
         output_seeds[f'{func.lower()}b'] = 1 # activate interest function
         
@@ -271,29 +271,94 @@ class ASAOptimization:
     
     def solve_asa(self,  desVars:np.ndarray):
         # Design variables
-        desVars[self.npanels:] =desVars[self.npanels:]/100
-        twist = desVars[:self.npanels]
-        t = desVars[self.npanels:]
+        desVars_norm = desVars.copy()
+        desVars_norm[self.npanels:] =desVars[self.npanels:]/100
+        twist = desVars_norm[:self.npanels]
+        t = desVars_norm[self.npanels:]
         
         # Solve physics
-        resfunc = lambda stateVars: self._resfunc(desVars, stateVars)
-        # Use professor's default initial guesses (gama = 80.0, d = 0.001)
-        gama0 = np.array([80.0, 80.0, 80.0, 80.0])
-        d0 =  np.array([0.001,0.001,0.001,0.001,0.001,0.001,0.001,0.001,0.001,0.001])
-        # Scale the initial guess for the solver's normalized variables
+        resfunc = lambda stateVars: self._resfunc(desVars_norm, stateVars)
+        
+        # Initial guess
+        gama0 = np.ones(self.npanels)*8.0
+        d0 =  np.ones(2*(self.npanels+1))*0.1
         stateVars0 = np.hstack([gama0, d0])
         sol = root(resfunc, stateVars0, options={'xtol': 1e-6})
         
         # Split state vars (applying same scaling: gama = stateVars/0.1, d = stateVars/100)
         gama = sol.x[:self.npanels]/0.1
         d = sol.x[self.npanels:]/100.0
+        stateVars = np.hstack([gama, d])
         
         # Call original code
         out = self._run_asa(twist=twist,gama= gama, t = t, d =d)
         
-        return out
+        return out, stateVars
     
-       
+    def compute_grads(self,desVars:np.ndarray, stateVars:np.ndarray, seed:Literal['liftExcess','KSmargin','FB','Weight']):
+        # Design variables
+        desVars_norm = desVars.copy()
+        desVars_norm[self.npanels:] =desVars[self.npanels:]/100
+        twist = desVars_norm[:self.npanels]
+        # t = desVars_norm[self.npanels:]
         
+        # # Solve ASA problem
+        # out, stateVars = self.solve_asa(desVars)
+        
+        # Solve adjoint problem
+        reslltb = np.ones_like(twist)*1e2
+        resfemb = np.ones_like(stateVars[self.npanels:])
+        resb0 = np.hstack([reslltb, resfemb])
+        resAdjfunc = lambda resb: self._resAdjfunc(desVars_norm,stateVars, resb,func = seed)
+        sol = root(resAdjfunc, resb0)
+        psi = sol.x
+        
+        # Compute total derivatives
+        _, dfunc_dx = self._adjfunc(desVars_norm,stateVars,psi, seed)
+        dfunc_dtwist = dfunc_dx[:self.npanels]
+        dfunc_dt = dfunc_dx[self.npanels:] / 100.0
+        dfunc_dx =  np.hstack([dfunc_dtwist,dfunc_dt])       
+        
+        return dfunc_dx
+    
+    def objfun(self,  desVars:np.ndarray, func:Literal['FB', 'Weight']):
+        # Copy design variables
+        desVars_norm = desVars.copy()
+        desVars_norm[self.npanels:] = desVars[self.npanels:]/100
+        
+        out, _ = self.solve_asa(desVars)
+        
+        if self.saveHistory:
+            self._x_hist.append(desVars_norm)
+            self._f_hist.append(out[func.lower()])
+            
+        return out[func.lower()]
+    
+    def objfungrad(self,desVars:np.ndarray, func:Literal['FB', 'Weight']):
+        _,stateVars = self.solve_asa(desVars)
+        
+        dobjfun_dx = self.compute_grads(desVars, stateVars,seed=func)
+        return dobjfun_dx
+    
+    def confun_eq(self, desVars:np.ndarray):
+        out, _ = self.solve_asa(desVars)
+        h = out['liftexcess']
+        return h
+    
+    def confungrad_eq(self,desVars:np.ndarray):
+        _,stateVars = self.solve_asa(desVars)
+        dliftexcess_dx = self.compute_grads(desVars, stateVars, seed = 'liftExcess')
+        return dliftexcess_dx
+        
+    def confun_ineq(self, desVars:np.ndarray):
+        out, _ = self.solve_asa(desVars)
+        gKS = out['ksmargin'] 
+
+        return gKS
+    
+    def confungrad_ineq(self,desVars:np.ndarray):
+        _,stateVars = self.solve_asa(desVars)
+        dksmargin_dx= self.compute_grads(desVars,stateVars,seed = 'KSmargin')
+        return dksmargin_dx
         
         
