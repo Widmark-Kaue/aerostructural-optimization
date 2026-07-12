@@ -149,6 +149,7 @@ plt.close()
 plt.figure(figsize = (13,9))
 hchoose = 10**(-8)
 i = 1
+title = ['(a)', '(b)', '(c)', '(d)']
 for kd in outLabel_d:
     k = kd[:-1]
     fdtest = np.array(FDtest[kd])
@@ -158,6 +159,7 @@ for kd in outLabel_d:
 
         plt.axvline(hchoose,color = 'k', linestyle = '--')
         
+        plt.title(title[0])
         plt.xlabel('h [-]')
         plt.ylabel('FD test [-]')
 
@@ -170,6 +172,7 @@ for kd in outLabel_d:
         plt.loglog(h, fdtest)
         plt.axvline(hchoose,color = 'k', linestyle = '--')
         
+        plt.title(title[i-1])
         plt.xlabel('h [-]')
         plt.ylabel('FD test [-]')
 
@@ -188,7 +191,7 @@ for kd in outLabel_d:
         
 plt.tight_layout()
 plt.savefig(imagdir / f'FDtest.{format}', dpi=dpi, bbox_inches='tight') if saveflag else None
-# plt.show()
+plt.show()
 
 #%% Seeds for reverse method
 rng = np.random.seed(42)

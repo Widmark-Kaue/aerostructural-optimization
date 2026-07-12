@@ -74,7 +74,7 @@ for d in loaded_data:
     w0 = d['out']['weight']
     
     # Compute structural weight 
-    ws = w0 - fb - d['asa'].fixedMass
+    ws = w0 - fb - d['asa'].fixedMass * d['asa'].g
     label = f"{d['obj']} (AR={d['AR']})"
     
     print(f"{label:<20} | {obj_val:<12.4f} | {fb:<14.4f} | {ws:<10.4f} | {w0:<10.4f} |")
@@ -186,37 +186,53 @@ plt.savefig(imagdir / f'q5.8_2_comp_lift.{format}', dpi=dpi, bbox_inches='tight'
 plt.figure(figsize=(8, 5))
 
 cases_labels = [f"{d['obj']}\n(AR={d['AR']})" for d in loaded_data]
+w_f_vals = []
+w_s_vals = []
+w_fb_vals = []
+
 w_f_fracs = []
 w_s_fracs = []
 w_fb_fracs = []
+w0_vals = []
 
 for d in loaded_data:
     asa = d['asa']
     w0 = d['out']['weight']
     fb = d['out']['fb']
-    ws = w0 - fb - asa.fixedMass
+    wf = asa.fixedMass * asa.g
+    ws = w0 - fb - wf
     
-    w_f_fracs.append(asa.fixedMass / w0 * 100)
+    w_f_vals.append(wf)
+    w_s_vals.append(ws)
+    w_fb_vals.append(fb)
+    w0_vals.append(w0)
+    
+    w_f_fracs.append(wf / w0 * 100)
     w_s_fracs.append(ws / w0 * 100)
     w_fb_fracs.append(fb / w0 * 100)
+
+w_f_vals = np.array(w_f_vals)
+w_s_vals = np.array(w_s_vals)
+w_fb_vals = np.array(w_fb_vals)
+w0_vals = np.array(w0_vals)
 
 w_f_fracs = np.array(w_f_fracs)
 w_s_fracs = np.array(w_s_fracs)
 w_fb_fracs = np.array(w_fb_fracs)
 
 # Stacked bar plot
-p1 = plt.bar(cases_labels, w_f_fracs, color='b', edgecolor='k', width=0.4, label=r'$W_f$')
-p2 = plt.bar(cases_labels, w_s_fracs, bottom=w_f_fracs, color='r', edgecolor='k', width=0.4, label=r'$W_s$')
-p3 = plt.bar(cases_labels, w_fb_fracs, bottom=w_f_fracs + w_s_fracs, color='g', edgecolor='k', width=0.4, label=r'$W_{FB}$')
+p1 = plt.bar(cases_labels, w_f_vals, color='b', edgecolor='k', width=0.4, label=r'$W_f$')
+p2 = plt.bar(cases_labels, w_s_vals, bottom=w_f_vals, color='r', edgecolor='k', width=0.4, label=r'$W_s$')
+p3 = plt.bar(cases_labels, w_fb_vals, bottom=w_f_vals + w_s_vals, color='g', edgecolor='k', width=0.4, label=r'$W_{FB}$')
 
 # Add labels inside the bars
 for idx in range(len(cases_labels)):
-    plt.text(idx, w_f_fracs[idx]/2, f"{w_f_fracs[idx]:.1f}%", ha='center', va='center', color='white', fontweight='bold')
-    plt.text(idx, w_f_fracs[idx] + w_s_fracs[idx]/2, f"{w_s_fracs[idx]:.1f}%", ha='center', va='center', color='white', fontweight='bold')
-    plt.text(idx, w_f_fracs[idx] + w_s_fracs[idx] + w_fb_fracs[idx]/2, f"{w_fb_fracs[idx]:.1f}%", ha='center', va='center', color='white', fontweight='bold')
+    plt.text(idx, w_f_vals[idx]/2, f"{w_f_fracs[idx]:.1f}%", ha='center', va='center', color='white', fontweight='bold')
+    plt.text(idx, w_f_vals[idx] + w_s_vals[idx]/2, f"{w_s_fracs[idx]:.1f}%", ha='center', va='center', color='white', fontweight='bold')
+    plt.text(idx, w_f_vals[idx] + w_s_vals[idx] + w_fb_vals[idx]/2, f"{w_fb_fracs[idx]:.1f}%", ha='center', va='center', color='white', fontweight='bold')
 
-plt.ylabel('Fração de Peso [%]')
-plt.ylim(0, 115)
+plt.ylabel('Peso [N]')
+plt.ylim(0, np.max(w0_vals) * 1.15)
 plt.grid(axis='y', linestyle=':', alpha=0.5)
 plt.legend(ncol=3, loc='upper center')
 plt.tight_layout()

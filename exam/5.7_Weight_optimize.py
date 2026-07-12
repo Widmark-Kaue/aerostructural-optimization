@@ -264,22 +264,24 @@ plt.savefig(imagdir / f'q5.7_3_margins.{format}',
 
 W0 = out['weight']
 FB = out['fb']
-Ws = W0 - FB - asa.fixedMass
+Wf = asa.fixedMass * asa.g
+Ws = W0 - FB - Wf
 
-weight_fraction = np.array([asa.fixedMass, Ws, FB])/W0 * 100
+weights = np.array([Wf, Ws, FB])
 poslabel= [r'$W_f$',r'$W_s$', r'$W_{FB}$']
 colors = ['b', 'r', 'g']
 
 plt.figure(figsize=(8, 5))
-for i in range(len(weight_fraction)):
-    bars = plt.bar(poslabel[i],weight_fraction[i], color = colors[i],edgecolor =  'k')
+for i in range(len(weights)):
+    bars = plt.bar(poslabel[i], weights[i], color = colors[i], edgecolor = 'k')
+    pct = weights[i] / W0 * 100
+    plt.bar_label(bars, labels=[f'{pct:.1f}%'], padding=3)
     
-    plt.bar_label(bars, fmt='%.1f%%', padding=3)
-    
-plt.bar([r'$W_0$'], 100, color='gray', edgecolor='k')
+bars_w0 = plt.bar([r'$W_0$'], W0, color='gray', edgecolor='k')
+plt.bar_label(bars_w0, labels=['100.0%'], padding=3)
 
-plt.xlabel('Weight')
-plt.ylabel('Fração de Peso [%]')
+plt.ylabel('Peso [N]')
+plt.ylim(0, W0 * 1.15)
 
 # plt.grid()
 
