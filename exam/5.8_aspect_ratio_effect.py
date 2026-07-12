@@ -3,26 +3,27 @@ import numpy as np
 import matplotlib.pyplot as plt
 from pickle import load
 from pathlib import Path
-from copy import deepcopy
 
 from asalib import ASAOptimization
 from utils import set_aiaa_style
 
 #%% Plot settings
 set_aiaa_style(16)
-
 dpi = 600
 format = 'pdf'
 saveflag = True
-
 #%% Path settings
 rootdir = Path('.')
 if not rootdir.absolute().name == 'exam':
     rootdir = Path('.', 'exam')
 
 datadir = rootdir.joinpath('data')
+datadir.mkdir(exist_ok=True, parents=True)
+print("Data will be load in:", datadir)
+
 imagdir = rootdir.joinpath('images')
 imagdir.mkdir(exist_ok=True)
+print("Images will be saved in:", imagdir)
 
 #%% Load results
 cases = [
@@ -36,17 +37,17 @@ loaded_data = []
 
 for case in cases:
     filepath = datadir / case['file']
-    if not filepath.exists():
-        raise FileNotFoundError(f"Result file not found: {filepath}")
+    
+    assert filepath.exists(), 'File not exist'
     
     with open(filepath, 'rb') as f:
         res = load(f)
     
-    # Extract the ASAOptimization object dynamically
-    asa = res.pop('asa')
+    # Extract the ASA object 
+    asa:ASAOptimization = res.pop('asa')
     desVarsOpt = res.x
     
-    # Solve physics for the optimized design variables to get full states
+    # Solve physics for the optimized design variables
     out, stateVars = asa.solve_asa(desVarsOpt)
     
     loaded_data.append({
@@ -61,25 +62,25 @@ for case in cases:
 
 npanels = loaded_data[0]['asa'].npanels
 
-#%% Print consolidated comparison table
+#%% Print comparison table
 print("\n" + "="*80)
-print(f"{'CONSOLIDATED COMPARISON OF OPTIMIZED DESIGNS':^80}")
+print(f"{'COMPARISON OF OPTIMIZED DESIGNS':^80}")
 print("="*80)
-print(f"{'Case':<20} | {'Obj Value':<12} | {'Fuel Burn (N)':<14} | {'Ws (N)':<10} | {'W0 (N)':<10} | {'KS Margin':<10}")
+print(f"{'Case':<20} | {'Obj Value':<12} | {'Fuel Burn (N)':<14} | {'Ws (N)':<10} | {'W0 (N)':<10} |")
 print("-"*80)
 for d in loaded_data:
     obj_val = d['res'].fun
     fb = d['out']['fb']
     w0 = d['out']['weight']
-    # Consistency check for structural weight calculation
+    
+    # Compute structural weight 
     ws = w0 - fb - d['asa'].fixedMass
-    ks = d['out']['ksmargin']
     label = f"{d['obj']} (AR={d['AR']})"
     
-    print(f"{label:<20} | {obj_val:<12.4f} | {fb:<14.4f} | {ws:<10.4f} | {w0:<10.4f} | {ks:<10.4f}")
+    print(f"{label:<20} | {obj_val:<12.4f} | {fb:<14.4f} | {ws:<10.4f} | {w0:<10.4f} |")
 print("="*80 + "\n")
 
-#%% 5.8 Compare Design Variables (Twist and Thickness)
+#%% 5.8 Compare Design Variables
 plt.close('all')
 plt.figure(figsize=(12, 4.5))
 
@@ -121,7 +122,7 @@ for d in loaded_data:
     asa = d['asa']
     b_wing = asa.span
     y_norm = asa.ypanels / b_wing
-    t_opt = d['desVarsOpt'][npanels:] / 100 * 1000 # Convert scaled variable to mm
+    t_opt = d['desVarsOpt'][npanels:] / 100 * 1000 # Convert to mm
     lbl = f"{d['obj']} (AR={d['AR']})"
     key = (d['obj'], d['AR'])
     plt.plot(y_norm, t_opt, markers[key], color=colors[key], label=lbl)
@@ -137,15 +138,15 @@ plt.tight_layout()
 plt.savefig(imagdir / f'q5.8_1_comp_desVars.{format}', dpi=dpi, bbox_inches='tight') if saveflag else None
 # plt.show()
 
-#%% 5.8 Compare Lift / Circulation Distributions (All curves in a single plot)
+#%% 5.8 Compare Circulation Distributions
 plt.figure(figsize=(8, 5))
 
-# Plot the single normalized elliptical reference distribution
+# Plot the normalized elliptical reference distribution
 y_dense = np.linspace(-0.5, 0.5, 200)
 gamma_elliptical_dense_norm = 2.0 * np.sqrt((0.5 + y_dense) * (0.5 - y_dense))
 plt.plot(y_dense, gamma_elliptical_dense_norm, 'k-', label='Elíptica')
 
-# Also plot the markers at the panel positions (using the y_norm of the first case)
+# Plot the markers at the panel positions 
 y_panels_norm = loaded_data[0]['asa'].ypanels / loaded_data[0]['asa'].span
 gamma_elliptical_panels_norm = 2.0 * np.sqrt((0.5 + y_panels_norm) * (0.5 - y_panels_norm))
 plt.plot(y_panels_norm, gamma_elliptical_panels_norm, 'ko')
@@ -181,7 +182,7 @@ plt.tight_layout()
 plt.savefig(imagdir / f'q5.8_2_comp_lift.{format}', dpi=dpi, bbox_inches='tight') if saveflag else None
 # plt.show()
 
-#%% 5.8 Weight Fractions (All stacked in a single plot)
+#%% 5.8 Weight Fractions 
 plt.figure(figsize=(8, 5))
 
 cases_labels = [f"{d['obj']}\n(AR={d['AR']})" for d in loaded_data]
@@ -222,7 +223,7 @@ plt.tight_layout()
 plt.savefig(imagdir / f'q5.8_3_weight_fractions.{format}', dpi=dpi, bbox_inches='tight') if saveflag else None
 # plt.show()
 
-#%% 5.8 Induced Drag Relative Error (Optimized vs Elliptical in %)
+#%% 5.8 Induced Drag Relative Error (Optimized vs Elliptical)
 plt.figure(figsize=(8, 4))
 
 drag_errors = []
@@ -234,7 +235,7 @@ for d in loaded_data:
     cl_val = d['out']['cl']
     
     # Calculate L/D from fuel burn formula
-    l_over_d = (asa.endurance * asa.TSFC) / np.log(w0 / (w0 - fb))
+    l_over_d = -(asa.endurance * asa.TSFC) / np.log(1 - fb/w0)
     
     # Calculate total CD and induced CDi
     cd_val = cl_val / l_over_d

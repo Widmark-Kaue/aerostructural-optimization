@@ -252,7 +252,7 @@ for i in range(0,len(ymargins)+1,2):
     plt.plot(ymargins[i:i+2], margins[i:i+2])
     
 
-plt.xlabel(r'$y/b$')
+plt.xlabel(r'$y/b$ [-]')
 plt.ylabel(r'$m=1-\dfrac{\sigma}{\sigma_Y}$ [-]')
 
 
@@ -279,7 +279,7 @@ for i in range(len(weight_fraction)):
     
 plt.bar([r'$W_0$'], 100, color='gray', edgecolor='k')
 
-plt.xlabel('Weight')
+plt.xlabel('Peso [N]')
 plt.ylabel('Fração de Peso [%]')
 
 # plt.grid()
@@ -292,6 +292,7 @@ plt.savefig(imagdir / f'q5.6_4_weight_fractions.{format}',
 
 #%% plot history
 plt.close('all')
+
 # Get history
 twist_hist = np.rad2deg(asa.x_hist[:,:npanels])
 t_hist =  asa.x_hist[:, npanels:]*1000
@@ -391,6 +392,8 @@ plt.show()
 
 
 plt.figure(figsize=(9,4))
+
+# Subplot 1: liftExcess 
 plt.subplot(1,2,1)
 plt.semilogy(liftExcess_hist,'darkred')
 
@@ -400,6 +403,7 @@ plt.ylabel(r'$\Delta L$ [-]')
 
 plt.grid()
 
+# Subplot 2: KS margin
 plt.subplot(1,2,2)
 plt.plot(KSmargin_hist,'darkgreen')
 

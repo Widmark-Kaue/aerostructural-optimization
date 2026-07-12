@@ -14,7 +14,6 @@ from utils import set_aiaa_style
 
 #%% Plot settings
 set_aiaa_style(16)
-
 dpi = 600
 format = 'pdf'
 saveflag = True
@@ -252,7 +251,7 @@ for i in range(0,len(ymargins)+1,2):
     plt.plot(ymargins[i:i+2], margins[i:i+2])
     
 
-plt.xlabel(r'$y/b$')
+plt.xlabel(r'$y/b$ [-]')
 plt.ylabel(r'$m=1-\dfrac{\sigma}{\sigma_Y}$ [-]')
 
 
