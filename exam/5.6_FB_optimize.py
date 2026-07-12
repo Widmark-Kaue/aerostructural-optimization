@@ -154,7 +154,7 @@ t0mm = t0 * 1000 # Convert to mm
 plt.figure(figsize=(10,4))
 # plot twist
 plt.subplot(1,2,1)
-plt.plot(asa.ypanels/b_wing[0], twistOptdeg,'bo-', label = 'Optimized')
+plt.plot(asa.ypanels/b_wing[0], twistOptdeg,'bo-', label = 'Otimizado')
 plt.plot(asa.ypanels/b_wing[0], twist0deg,'ko-', label = 'Baseline')
 
 plt.xlim(-0.5,0.5)
@@ -169,7 +169,7 @@ plt.legend()
 
 # plot t
 plt.subplot(1,2,2)
-plt.plot(asa.ypanels/b_wing[0], tOptmm,'bo-', label = 'Optimized')
+plt.plot(asa.ypanels/b_wing[0], tOptmm,'bo-', label = 'Otimizado')
 plt.plot(asa.ypanels/b_wing[0], t0mm,'ko-', label = 'Baseline')
 
 plt.xlim(-0.5,0.5)
@@ -224,8 +224,8 @@ gamma_elliptical = 2*gamma_0 * np.sqrt((0.5+ y/span) * (0.5-y/span))
 # CD_an = cl**2*Sref/(np.pi*span**2)
 
 plt.figure(figsize=(8,5))
-plt.plot(y, gamma_elliptical, 'ko-', label = 'Elliptical distribution')
-plt.plot(asa.ypanels, Gamma, 'bo-', label = 'Optimized')
+plt.plot(y, gamma_elliptical, 'ko-', label = 'Elíptica')
+plt.plot(asa.ypanels, Gamma, 'bo-', label = 'Otimizado')
 
 plt.xlabel(r'$y/b$ [-]')
 plt.ylabel(r'$\Gamma$ [m$^2$/s]')
@@ -280,7 +280,7 @@ for i in range(len(weight_fraction)):
 plt.bar([r'$W_0$'], 100, color='gray', edgecolor='k')
 
 plt.xlabel('Weight')
-plt.ylabel('Wight Fraction [%]')
+plt.ylabel('Fração de Peso [%]')
 
 # plt.grid()
 
