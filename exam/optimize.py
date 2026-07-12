@@ -19,7 +19,7 @@ saveflag = True
 
 #%% Data settings
 exportData = True
-readData = True
+readData = False
 
 #%% Path settings
 rootdir = Path('.')
@@ -43,8 +43,7 @@ cref = Sref/b_wing
 npanels = 20
 
 #%% Create ASA optimize object
-asalistFB = [
-                ASAOptimization(
+asalistFB = [ASAOptimization(
                     npanels=npanels,
                     saveHistory=True, 
                     span = b_wing[i],
@@ -53,12 +52,28 @@ asalistFB = [
                     )
      for i in range(len(AR))]
 
-#%% Options for optmizer
-tol = 1e-8
-options = {'maxiter': 20000}
+#%% Create list to store results
+resultsFB = []
 
-#%% Minimize Fuel burn
+#%% 5.6 Fuel burn minimization
+
+# Initial guess 
+twist0 = np.zeros(npanels, dtype=float)
+t0  = np.ones(npanels,  dtype=float)*0.005
+desVars0 = np.hstack([twist0,t0]) # baseline
+desVars0[npanels:] *= 100   
+
+# Bounds
+twist_min = np.deg2rad(-45)
+twist_max = np.deg2rad(45)
+t_min = 0.001
+t_max = asalistFB[0].r
+
+bounds = [[twist_min,twist_max]]*npanels + [[t_min*100,t_max*100]]*npanels
+
+# Loop for AR cases
 for i in range(len(AR)):
+    # get asa object
     asa = asalistFB[i]
     
     # clean history
@@ -80,32 +95,21 @@ for i in range(len(AR)):
     objfun = lambda desVars: asa.objfun(desVars, func='FB')
     objfungrad = lambda desVars: asa.objfungrad(desVars, func = 'FB')
     
-    # Initial guess 
-    twist0 = np.zeros(npanels, dtype=float)
-    t0  = np.ones(npanels,  dtype=float)*0.005
-    desVars0 = np.hstack([twist0,t0])
-    desVars0[npanels:] *= 100
     
-    # Bounds
-    twist_min = np.deg2rad(-45)
-    twist_max = np.deg2rad(45)
-    t_min = 0.001
-    t_max = asa.r
-    
-    bounds = [[twist_min,twist_max]]*npanels + [[t_min*100,t_max*100]]*npanels
-    
+    # Optimization
     if not readData:
-        # Optimization
         result = minimize(objfun, desVars0, 
                           jac = objfungrad,
                           constraints=con,
                           bounds=bounds,
-                          method='SLSQP',
-                          tol = tol,
-                          options=options)
+                          method='SLSQP')
         
         print(result)
         
+        # Store results
+        resultsFB.append(deepcopy(result))
+        
+        # Export optimization data
         if exportData:
             res=deepcopy(result)
             res.asa=asa
@@ -114,47 +118,105 @@ for i in range(len(AR)):
             
             print(f'FB minimization exported (AR={AR[i]})...')
     else:
+        # Read optimization data
         with open(datadir / f'FB_results_AR{AR[i]}.pkl', 'rb') as f:
             result = load(f)
+        asalistFB[i] = result.pop('asa')
+        resultsFB.append(result)
         print(f'Load FB results(AR={AR[i]})...')
-        asalistFB[i] = result.asa
-    
-#%% Plot history
-asa=asalistFB[0]
-twist_hist = asa.x_hist[:, :npanels]
-t_hist = asa.x_hist[:,npanels:]
-f_hist = asa.f_hist
 
-plt.figure(figsize=(13,4))
+#%% 5.6 Baseline x Optimized
+# close figures
+plt.close()
+
+# Get objects and results
+asa = asalistFB[0]
+desVarsOpt = resultsFB[0].x
+
+twistOptdeg = np.rad2deg(desVarsOpt[:asa.npanels]) # convert to deg
+tOptmm = desVarsOpt[asa.npanels:]/100 * 1000 # convert to mm
+
+twist0deg = np.rad2deg(twist0) # Convert to deg
+t0mm = t0 * 1000 # Convert to mm
+
+## Plot Design variables
+plt.figure(figsize=(10,4))
+# plot twist
+plt.subplot(1,2,1)
+plt.plot(asa.ypanels/b_wing[0], twistOptdeg,'bo-', label = 'Optimized')
+plt.plot(asa.ypanels/b_wing[0], twist0deg,'ko-', label = 'Baseline')
+
+plt.xlim(-0.5,0.5)
+
+plt.xlabel(r'$y/b$ [-]')
+plt.ylabel(r'$\tau$ [deg]')
+
+
+plt.grid()
+plt.legend()
+
+# plot t
+plt.subplot(1,2,2)
+plt.plot(asa.ypanels/b_wing[0], tOptmm,'bo-', label = 'Optimized')
+plt.plot(asa.ypanels/b_wing[0], t0mm,'ko-', label = 'Baseline')
+
+plt.xlim(-0.5,0.5)
+
+plt.xlabel(r'$y/b$ [-]')
+plt.ylabel(r'$t$ [mm]')
+
+plt.grid()
+plt.legend()
+
+plt.tight_layout()
+
+plt.savefig(imagdir / f'q5.6_1_comp_desVars_baseline_x_opt.{format}', 
+            dpi=dpi, bbox_inches='tight') if saveflag else None
+
+# plt.show()
+
+
+## Print Objfun and Constraints
+
+obj0 = asa.objfun(desVars0, func = 'FB')
+objOPT = asa.objfun(desVarsOpt, func = 'FB')
+
+print('Objective function:')
+print(f'Baseline: FB = {obj0}')
+print(f'Optimized: FB = {objOPT}')
+
+deltaL0 = asa.confun_eq(desVars0)
+deltaLOpt = asa.confun_eq(desVarsOpt)
+
+KSmargin0 = asa.confun_ineq(desVars0)
+KSmarginOpt = asa.confun_ineq(desVarsOpt)
+
+print()
+print('Constraints:')
+print(f'Baseline: litfExcess = {deltaL0}')
+print(f'Optimized: liftExcess = {deltaLOpt}')
+print()
+print(f'Baseline: KSmargin = {KSmargin0}')
+print(f'Optimized: KSmargin = {KSmarginOpt}')
+
+
+#%% plot history
+twist_hist = asa.x_hist[:,:npanels]
+t_hist =  asa.x_hist[:, npanels:]
+fb_hist = asa.f_hist
+
+plt.figure(figsize = (13,4))
 plt.subplot(1,3,1)
 plt.plot(twist_hist)
-
-plt.xlabel(r'$N_{\text{fev}}$')
 plt.ylabel(r'$\vec{\tau}$')
 
-plt.grid()
-
 plt.subplot(1,3,2)
-plt.plot(t_hist*100)
-
-
-plt.xlabel(r'$N_{\text{fev}}$')
-plt.ylabel( r'$\vec{t} \times 10^2$')
-
-plt.grid()
+plt.plot(t_hist)
+plt.ylabel(r'$\vec{t}$')
 
 plt.subplot(1,3,3)
-plt.semilogy(f_hist)
-
-plt.xlabel(r'$N_{\text{fev}}$')
+plt.semilogy(fb_hist)
 plt.ylabel(r'$FB$')
-
-plt.grid()
 
 plt.tight_layout()
 plt.show()
-
-
-
-
-

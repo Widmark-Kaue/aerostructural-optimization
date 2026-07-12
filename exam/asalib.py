@@ -44,15 +44,18 @@ class ASAOptimization:
     loadFactor: float = 3.0 * 1.5                             # [-]
 
     # Utils Dictionary and lists
-    _outLabel: list = field(init=False, default_factory=list)
-    _outLabel_b: list = field(init=False, default_factory=list)
-    _INPUTS: dict = field(init=False, default_factory=dict)
-    _x_hist: list = field(init=False, default_factory=list)
-    _f_hist: list = field(init=False, default_factory=list)
-
+    _outLabel: list = field(init=False, repr=False,default_factory=list)
+    _outLabel_b: list = field(init=False,repr=False, default_factory=list)
+    _INPUTS: dict = field(init=False, repr=False, default_factory=dict)
+    _x_hist: list = field(init=False,repr=False, default_factory=list)
+    _f_hist: list = field(init=False, repr=False, default_factory=list)
+    _last_stateVars: np.ndarray = field(init =  False, repr=False,default_factory=lambda : np.empty([])) 
+    _last_resb: np.ndarray = field(init = False, repr=False, default_factory= lambda : np.empty([]))
+    
     def __post_init__(self):
         self._build_input_dict()
         self._build_outlabel_lists()
+        self._build_last_stateVars()
         
     #### Properties
     @property
@@ -62,7 +65,30 @@ class ASAOptimization:
     @property
     def f_hist(self):
         return np.array(self._f_hist)
-
+    
+    @property
+    def ypanels(self):
+        panel_length = self.span/self.npanels
+        idx = np.arange(1,self.npanels+1)
+        ypanels  = 0.5*(panel_length - self.span) + (idx-1)*panel_length
+        return ypanels
+    
+    @property
+    def ynodes(self):
+        ynodes = np.linspace(-self.span/2, self.span/2, self.npanels + 1)
+        return ynodes
+    
+    @property
+    def ymargins(self):
+        ynodes = self.ynodes
+        
+        # Mapeamento do índice da margem para o índice do nó correspondente
+        # Para npanels = 4: [0, 1, 1, 2, 2, 3, 3, 4]
+        node_indices = np.arange(1, 2 * self.npanels + 1) // 2
+        
+        # Retorna o y correspondente a cada margem (tamanho 2 * npanels)
+        return ynodes[node_indices]
+    
     #### Hidden functions
     
     def _build_input_dict(self):
@@ -116,6 +142,11 @@ class ASAOptimization:
         # names for output seeds Reverse AD
         self._outLabel_b = [f'{self._outLabel[i]}b' for i in range(7)]
 
+    def _build_last_stateVars(self):
+        gama0 = np.ones(self.npanels)*8.0
+        d0 =  np.ones(2*(self.npanels+1))*0.1
+        self._last_stateVars = np.hstack([gama0, d0])
+        
     def _run_asa(self, twist: np.ndarray, gama: np.ndarray, t: np.ndarray, d: np.ndarray) -> dict:
         """
         Runs the original code (asa_main) and returns the output variables mapped to a dictionary.
@@ -279,11 +310,10 @@ class ASAOptimization:
         # Solve physics
         resfunc = lambda stateVars: self._resfunc(desVars_norm, stateVars)
         
-        # Initial guess
-        gama0 = np.ones(self.npanels)*8.0
-        d0 =  np.ones(2*(self.npanels+1))*0.1
-        stateVars0 = np.hstack([gama0, d0])
+        # Initial guess (Use last stateVars computed as initial guess)
+        stateVars0 = self._last_stateVars 
         sol = root(resfunc, stateVars0, options={'xtol': 1e-6})
+        self._last_stateVars = sol.x # update last stateVars
         
         # Split state vars (applying same scaling: gama = stateVars/0.1, d = stateVars/100)
         gama = sol.x[:self.npanels]/0.1
