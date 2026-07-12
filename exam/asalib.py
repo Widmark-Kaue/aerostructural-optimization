@@ -49,6 +49,8 @@ class ASAOptimization:
     _INPUTS: dict = field(init=False, repr=False, default_factory=dict)
     _x_hist: list = field(init=False,repr=False, default_factory=list)
     _f_hist: list = field(init=False, repr=False, default_factory=list)
+    _h_hist: list = field(init=False, repr=False, default_factory=list)
+    _g_hist: list = field(init=False, repr=False, default_factory=list )
     _last_stateVars: np.ndarray = field(init =  False, repr=False,default_factory=lambda : np.empty([])) 
     _last_resb: np.ndarray = field(init = False, repr=False, default_factory= lambda : np.empty([]))
     
@@ -65,6 +67,14 @@ class ASAOptimization:
     @property
     def f_hist(self):
         return np.array(self._f_hist)
+    
+    @property
+    def h_hist(self):
+            return np.array(self._h_hist)
+        
+    @property
+    def g_hist(self):
+        return np.array(self._g_hist)
     
     @property
     def ypanels(self):
@@ -299,7 +309,10 @@ class ASAOptimization:
     def clean_history(self):
         self._x_hist = []
         self._f_hist = []
-    
+        self._h_hist = []
+        self._g_hist = []
+        
+        
     def solve_asa(self,  desVars:np.ndarray):
         # Design variables
         desVars_norm = desVars.copy()
@@ -373,6 +386,8 @@ class ASAOptimization:
     def confun_eq(self, desVars:np.ndarray):
         out, _ = self.solve_asa(desVars)
         h = out['liftexcess']
+        if self.saveHistory:
+            self._h_hist.append(h)
         return h
     
     def confungrad_eq(self,desVars:np.ndarray):
@@ -383,7 +398,8 @@ class ASAOptimization:
     def confun_ineq(self, desVars:np.ndarray):
         out, _ = self.solve_asa(desVars)
         gKS = out['ksmargin'] 
-
+        if self.saveHistory:
+            self._g_hist.append(gKS)
         return gKS
     
     def confungrad_ineq(self,desVars:np.ndarray):
